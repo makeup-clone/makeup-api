@@ -1,3 +1,6 @@
 <Solution>
+  <Project Path="Application/Application.csproj" Id="22be94bf-9542-492e-9db8-345cb1a78100" />
+  <Project Path="Domain/Domain.csproj" Id="54faa3ed-e2b7-4ab9-a65a-a0c0876826b1" />
+  <Project Path="Infrastructure/Infrastructure.csproj" Id="8883c43c-6e20-4e9a-9e4f-096ae4db5628" />
   <Project Path="MakeUp.Api/MakeUp.Api.csproj" />
 </Solution>
