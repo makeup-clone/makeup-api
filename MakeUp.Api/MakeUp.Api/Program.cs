@@ -9,6 +9,7 @@ builder.Services.AddDbContext<AppDbContext>(opt =>
 
 
 builder.Services.AddControllers();
+builder.Services.AddSwaggerGen();
 
 
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
@@ -19,8 +20,10 @@ var app = builder.Build();
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
-    app.MapOpenApi();
+    app.UseSwagger();
+    app.UseSwaggerUI();
 }
+
 
 app.UseAuthorization();
 
