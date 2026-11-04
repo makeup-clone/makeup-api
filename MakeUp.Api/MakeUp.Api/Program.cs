@@ -1,5 +1,6 @@
 using Domain.Entities.Identity;
 using Infrastructure;
+using Infrastructure.Seed;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
@@ -50,6 +51,7 @@ using (var scope = app.Services.CreateScope())
         await context.Database.MigrateAsync();
         logger.LogInformation("Міграції успішно застосовані.");
 
+        await DbSeeder.SeedAllAsync(services);
     }
     catch (Exception ex)
     {
