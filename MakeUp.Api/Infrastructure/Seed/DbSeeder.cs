@@ -57,6 +57,7 @@ public static class DbSeeder
         if (!File.Exists(filePath))
         {
             logger.LogError("Файл {JsonName} не знайдено", jsonName);
+            return;
         }
 
         var json = await File.ReadAllTextAsync(filePath);
