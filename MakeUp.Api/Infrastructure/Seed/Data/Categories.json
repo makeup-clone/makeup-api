@@ -1,0 +1,66 @@
+[
+  {
+    "name": "Парфумерія",
+    "urlSlug": "perfumery",
+    "priority": 1,
+    "children": [
+      {
+        "name": "Жіноча парфумерія",
+        "urlSlug": "women-perfume",
+        "priority": 1
+      },
+      {
+        "name": "Чоловіча парфумерія",
+        "urlSlug": "men-perfume",
+        "priority": 2
+      },
+      {
+        "name": "Парфумерія унісекс",
+        "urlSlug": "unisex-perfume",
+        "priority": 3
+      }
+    ]
+  },
+
+  {
+    "name": "Макіяж",
+    "urlSlug": "makeup",
+    "priority": 2,
+    "children": []
+  },
+
+  {
+    "name": "Обличчя",
+    "urlSlug": "face",
+    "priority": 3,
+    "children": []
+  },
+
+  {
+    "name": "Волосся",
+    "urlSlug": "hair",
+    "priority": 4,
+    "children": []
+  },
+
+  {
+    "name": "Тіло",
+    "urlSlug": "body",
+    "priority": 5,
+    "children": []
+  },
+
+  {
+    "name": "Здоров'я і догляд",
+    "urlSlug": "health-and-care",
+    "priority": 6,
+    "children": []
+  },
+
+  {
+    "name": "Аксесуари і техніка",
+    "urlSlug": "accessories-and-technique",
+    "priority": 7,
+    "children": []
+  }
+]

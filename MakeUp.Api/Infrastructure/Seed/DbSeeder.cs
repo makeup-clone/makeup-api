@@ -1,6 +1,10 @@
-﻿using Domain.Entities.Identity;
+﻿using System.Text.Json;
+using Domain.Entities.Identity;
+using Domain.Entities;
 using Infrastructure.Constants;
+using Infrastructure.Seed.Models;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
@@ -8,7 +12,7 @@ namespace Infrastructure.Seed;
 
 public static class DbSeeder
 {
-    public static async Task SeedAllAsync(IServiceProvider serviceProvider)
+    public static async Task SeedAllAsync(IServiceProvider serviceProvider, AppDbContext dbContext)
     {
         var roleManager = serviceProvider.GetRequiredService<RoleManager<RoleEntity>>();
         var loggerFactory = serviceProvider.GetRequiredService<ILoggerFactory>();
@@ -17,8 +21,7 @@ public static class DbSeeder
         logger.LogInformation("Розпочато процес ініціалізації та сідування бази даних...");
 
         await SeedRolesAsync(roleManager, logger);
-
-        // Тут у майбутньому можна БАЖАНО додати інші сідери
+        await SeedCategoriesAsync(dbContext, logger);
     }
     public static async Task SeedRolesAsync(RoleManager<RoleEntity> roleManager, ILogger logger)
     {
@@ -41,6 +44,70 @@ public static class DbSeeder
                     }
                 }
             }
+        }
+    }
+
+    public static async Task SeedCategoriesAsync(AppDbContext dbContext, ILogger logger)
+    {
+        string jsonName = "Categories.json";
+        var filePath = Path.Combine(AppContext.BaseDirectory, "Seed", "Data",jsonName);
+
+        Console.WriteLine($"Шлях до файлу: {filePath}");
+
+        if (!File.Exists(filePath))
+        {
+            logger.LogError("Файл {JsonName} не знайдено", jsonName);
+            return;
+        }
+
+        var json = await File.ReadAllTextAsync(filePath);
+        var options = new JsonSerializerOptions
+        {
+            PropertyNameCaseInsensitive = true
+        };
+
+        var categories = JsonSerializer.Deserialize<List<CategorySeedModel>>(json, options);
+
+        if (categories is null)
+        {
+            logger.LogInformation("Categories.json не має даних для seed");
+            return;
+        }
+
+        foreach (var model in categories)
+        {
+            await AddCategoryAsync(model, dbContext, null);
+        }
+
+        logger.LogInformation("Успішно додано усі категорії");
+    }
+
+    public static async Task AddCategoryAsync(CategorySeedModel categorySeedModel, AppDbContext dbContext, long? parentId)
+    {
+        var category = await dbContext.Categories
+                .FirstOrDefaultAsync(x => x.UrlSlug == categorySeedModel.UrlSlug);
+
+        Console.WriteLine($"Додаємо категорію: {categorySeedModel.Name}, UrlSlug: {categorySeedModel.UrlSlug}, ParentId: {parentId}");
+
+        if (category is null)
+        {
+            category = new CategoryEntity
+            {
+                Name = categorySeedModel.Name,
+                UrlSlug = categorySeedModel.UrlSlug,
+                Priority = categorySeedModel.Priority,
+                Image = categorySeedModel.Image,
+                Description = categorySeedModel.Description,
+                ParentId = parentId
+            };
+
+            await dbContext.Categories.AddAsync(category);
+            await dbContext.SaveChangesAsync();
+        }
+
+        foreach (var child in categorySeedModel.Children)
+        {
+            await AddCategoryAsync(child, dbContext, category.Id);
         }
     }
 }

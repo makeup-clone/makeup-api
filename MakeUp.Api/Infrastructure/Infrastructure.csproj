@@ -23,4 +23,11 @@
     <ProjectReference Include="..\Application\Application.csproj" />
   </ItemGroup>
 
+	<ItemGroup>
+		<None Update="Seed/Data/**/*.json">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+			<CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+		</None>
+	</ItemGroup>
+
 </Project>
