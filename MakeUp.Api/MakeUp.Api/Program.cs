@@ -16,7 +16,15 @@ builder.Services.AddDbContext<AppDbContext>(opt =>
 
 builder.Services.AddScoped<IImageService, ImageService>();
 
-builder.Services.AddIdentity<UserEntity, RoleEntity>(options =>{})
+builder.Services.AddIdentity<UserEntity, RoleEntity>(options =>
+{
+    options.Password.RequireDigit = false; //Цифри
+    options.Password.RequireNonAlphanumeric = false; //Спеціальні символи
+    options.Password.RequireLowercase = false;  //Маленькі літери
+    options.Password.RequireUppercase = false; //Великі літери
+    options.Password.RequiredLength = 6; //Кількість символів
+    options.Password.RequiredUniqueChars = 1;  //Кількість унікальних символів
+})
 .AddEntityFrameworkStores<AppDbContext>()
 .AddDefaultTokenProviders();
 

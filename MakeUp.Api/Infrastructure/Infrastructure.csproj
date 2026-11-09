@@ -5,6 +5,14 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
   </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="Seed\Data\Users.json" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Seed\Data\Users.json" />
+  </ItemGroup>
 	
   <ItemGroup>
 	<PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.14">
