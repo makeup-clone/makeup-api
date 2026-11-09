@@ -59,7 +59,7 @@ using (var scope = app.Services.CreateScope())
         await context.Database.MigrateAsync();
         logger.LogInformation("Міграції успішно застосовані.");
 
-        await DbSeeder.SeedAllAsync(services);
+        await DbSeeder.SeedAllAsync(services, context);
     }
     catch (Exception ex)
     {
