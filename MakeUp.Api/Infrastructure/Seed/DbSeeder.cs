@@ -50,7 +50,9 @@ public static class DbSeeder
     public static async Task SeedCategoriesAsync(AppDbContext dbContext, ILogger logger)
     {
         string jsonName = "Categories.json";
-        var filePath = Path.Combine(Directory.GetCurrentDirectory(), "Data", jsonName);
+        var filePath = Path.Combine(AppContext.BaseDirectory, "Seed", "Data",jsonName);
+
+        Console.WriteLine($"Шлях до файлу: {filePath}");
 
         if (!File.Exists(filePath))
         {
