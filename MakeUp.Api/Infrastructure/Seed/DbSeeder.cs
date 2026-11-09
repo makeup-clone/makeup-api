@@ -56,8 +56,7 @@ public static class DbSeeder
 
         if (!File.Exists(filePath))
         {
-            logger.LogError($"Файл {jsonName} не знайдено");
-            throw new FileNotFoundException($"{jsonName} not found");
+            logger.LogError("Файл {JsonName} не знайдено", jsonName);
         }
 
         var json = await File.ReadAllTextAsync(filePath);
@@ -74,7 +73,7 @@ public static class DbSeeder
             await AddCategoryAsync(model, dbContext, null);
         }
 
-        logger.LogInformation("Успіно додано усі категорії");
+        logger.LogInformation("Успішно додано усі категорії");
     }
 
     public static async Task AddCategoryAsync(CategorySeedModel categorySeedModel, AppDbContext dbContext, long? parentId)
