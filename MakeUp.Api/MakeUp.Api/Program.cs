@@ -2,7 +2,6 @@ using Application.Interfaces;
 using Infrastructure;
 using Infrastructure.Services;
 using Domain.Entities.Identity;
-using Infrastructure;
 using Infrastructure.Seed;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -16,6 +15,7 @@ builder.Services.AddDbContext<AppDbContext>(opt =>
     opt.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 builder.Services.AddScoped<IImageService, ImageService>();
+
 builder.Services.AddIdentity<UserEntity, RoleEntity>(options =>{})
 .AddEntityFrameworkStores<AppDbContext>()
 .AddDefaultTokenProviders();
