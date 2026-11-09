@@ -1,3 +1,6 @@
+using Application.Interfaces;
+using Infrastructure;
+using Infrastructure.Services;
 using Domain.Entities.Identity;
 using Infrastructure;
 using Infrastructure.Seed;
@@ -12,6 +15,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddDbContext<AppDbContext>(opt =>
     opt.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
+builder.Services.AddScoped<IImageService, ImageService>();
 builder.Services.AddIdentity<UserEntity, RoleEntity>(options =>{})
 .AddEntityFrameworkStores<AppDbContext>()
 .AddDefaultTokenProviders();
@@ -19,10 +23,6 @@ builder.Services.AddIdentity<UserEntity, RoleEntity>(options =>{})
 
 builder.Services.AddControllers();
 builder.Services.AddSwaggerGen();
-
-
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
-builder.Services.AddOpenApi();
 
 var app = builder.Build();
  
