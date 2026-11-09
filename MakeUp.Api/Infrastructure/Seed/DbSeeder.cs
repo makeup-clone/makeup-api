@@ -61,7 +61,12 @@ public static class DbSeeder
         }
 
         var json = await File.ReadAllTextAsync(filePath);
-        var categories = JsonSerializer.Deserialize<List<CategorySeedModel>>(json);
+        var options = new JsonSerializerOptions
+        {
+            PropertyNameCaseInsensitive = true
+        };
+
+        var categories = JsonSerializer.Deserialize<List<CategorySeedModel>>(json, options);
 
         if (categories is null)
         {
@@ -81,6 +86,8 @@ public static class DbSeeder
     {
         var category = await dbContext.Categories
                 .FirstOrDefaultAsync(x => x.UrlSlug == categorySeedModel.UrlSlug);
+
+        Console.WriteLine($"Додаємо категорію: {categorySeedModel.Name}, UrlSlug: {categorySeedModel.UrlSlug}, ParentId: {parentId}");
 
         if (category is null)
         {
