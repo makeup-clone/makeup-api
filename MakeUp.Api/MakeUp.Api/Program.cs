@@ -1,7 +1,7 @@
 using Application.Interfaces;
-using Infrastructure;
-using Infrastructure.Services;
+using Application.Services;
 using Domain.Entities.Identity;
+using Infrastructure;
 using Infrastructure.Seed;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -13,8 +13,12 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.AddDbContext<AppDbContext>(opt =>
     opt.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+builder.Services.AddScoped<IAppDbContext>(provider => provider.GetRequiredService<AppDbContext>());
 
 builder.Services.AddScoped<IImageService, ImageService>();
+builder.Services.AddScoped<ICategoryService, CategoryService>();
+
+builder.Services.AddAutoMapper(cfg => {}, AppDomain.CurrentDomain.GetAssemblies());
 
 builder.Services.AddIdentity<UserEntity, RoleEntity>(options =>
 {
@@ -32,6 +36,18 @@ builder.Services.AddIdentity<UserEntity, RoleEntity>(options =>
 builder.Services.AddControllers();
 builder.Services.AddSwaggerGen();
 
+string webUrl = builder.Configuration.GetValue<string>("WebUrl") ?? "http://localhost:5173";
+
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowReactApp", policy =>
+    {
+        policy.WithOrigins(webUrl)
+              .AllowAnyHeader()
+              .AllowAnyMethod();
+    });
+});
+
 var app = builder.Build();
  
 // Configure the HTTP request pipeline.
@@ -41,6 +57,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+app.UseCors("AllowReactApp");
 
 app.UseAuthorization();
 

@@ -1,6 +1,4 @@
 ﻿using Application.Interfaces;
-using Infrastructure.Services;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace MakeUp.Api.Controllers

@@ -3,6 +3,7 @@ using Domain.Entities.Identity;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using Application.Interfaces;
 
 namespace Infrastructure;
 
@@ -15,7 +16,7 @@ public class AppDbContext : IdentityDbContext<
         UserLoginEntity,
         IdentityRoleClaim<long>,
         IdentityUserToken<long>
-    >
+    >, IAppDbContext
 {
     public AppDbContext(DbContextOptions<AppDbContext> options)
     : base(options) { }
