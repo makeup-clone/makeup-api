@@ -1,10 +1,10 @@
 using Application.Interfaces;
-using Infrastructure;
+using Application.Services;
 using Domain.Entities.Identity;
+using Infrastructure;
 using Infrastructure.Seed;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Application.Services;
 
 Console.OutputEncoding = System.Text.Encoding.UTF8;
 
@@ -13,8 +13,12 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.AddDbContext<AppDbContext>(opt =>
     opt.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+builder.Services.AddScoped<IAppDbContext>(provider => provider.GetRequiredService<AppDbContext>());
 
 builder.Services.AddScoped<IImageService, ImageService>();
+builder.Services.AddScoped<ICategoryService, CategoryService>();
+
+builder.Services.AddAutoMapper(cfg => {}, AppDomain.CurrentDomain.GetAssemblies());
 
 builder.Services.AddIdentity<UserEntity, RoleEntity>(options =>
 {
