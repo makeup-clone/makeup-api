@@ -1,10 +1,10 @@
 using Application.Interfaces;
 using Infrastructure;
-using Infrastructure.Services;
 using Domain.Entities.Identity;
 using Infrastructure.Seed;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Application.Services;
 
 Console.OutputEncoding = System.Text.Encoding.UTF8;
 

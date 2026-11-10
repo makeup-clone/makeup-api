@@ -6,7 +6,7 @@ using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Formats.Webp;
 using SixLabors.ImageSharp.Processing;
 
-namespace Infrastructure.Services;
+namespace Application.Services;
 
 public class ImageService(IConfiguration configuration, ILogger<ImageService> logger) : IImageService
 {

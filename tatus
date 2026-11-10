@@ -1,0 +1,44 @@
+[33m20d50b1[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mdevelop[m[33m, [m[1;31morigin/develop[m[33m, [m[1;32mrefactor/clean-architecture-services[m[33m)[m HEAD@{0}: checkout: moving from refactor/clean-architecture-services to develop
+[33m20d50b1[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mdevelop[m[33m, [m[1;31morigin/develop[m[33m, [m[1;32mrefactor/clean-architecture-services[m[33m)[m HEAD@{1}: checkout: moving from develop to refactor/clean-architecture-services
+[33m20d50b1[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mdevelop[m[33m, [m[1;31morigin/develop[m[33m, [m[1;32mrefactor/clean-architecture-services[m[33m)[m HEAD@{2}: reset: moving to origin/develop
+[33m20d50b1[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mdevelop[m[33m, [m[1;31morigin/develop[m[33m, [m[1;32mrefactor/clean-architecture-services[m[33m)[m HEAD@{3}: checkout: moving from refactor/clean-architecture-services to develop
+[33m20d50b1[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mdevelop[m[33m, [m[1;31morigin/develop[m[33m, [m[1;32mrefactor/clean-architecture-services[m[33m)[m HEAD@{4}: checkout: moving from develop to refactor/clean-architecture-services
+[33m20d50b1[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mdevelop[m[33m, [m[1;31morigin/develop[m[33m, [m[1;32mrefactor/clean-architecture-services[m[33m)[m HEAD@{5}: checkout: moving from refactor/cleanup-and-structure to develop
+[33m7f1e264[m[33m ([m[1;31morigin/refactor/cleanup-and-structure[m[33m)[m HEAD@{6}: checkout: moving from develop to refactor/cleanup-and-structure
+[33m20d50b1[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mdevelop[m[33m, [m[1;31morigin/develop[m[33m, [m[1;32mrefactor/clean-architecture-services[m[33m)[m HEAD@{7}: pull --progress --no-edit --no-stat --recurse-submodules=no origin: Fast-forward
+[33m8deae84[m HEAD@{8}: checkout: moving from refactor/cleanup-and-structure to develop
+[33m7f1e264[m[33m ([m[1;31morigin/refactor/cleanup-and-structure[m[33m)[m HEAD@{9}: commit: refactor: cleanup and reorganizing .gitignore
+[33m8deae84[m HEAD@{10}: checkout: moving from develop to refactor/cleanup-and-structure
+[33m8deae84[m HEAD@{11}: pull --progress --no-edit --no-stat --recurse-submodules=no origin: Fast-forward
+[33m77e48a0[m HEAD@{12}: checkout: moving from feature/add-user-seeder to develop
+[33m1f99e8b[m HEAD@{13}: commit: feat: add seed users
+[33m77e48a0[m HEAD@{14}: checkout: moving from develop to feature/add-user-seeder
+[33m77e48a0[m HEAD@{15}: pull --progress --no-edit --no-stat --recurse-submodules=no origin: Fast-forward
+[33m03a9afe[m HEAD@{16}: checkout: moving from refactor/cleanup-program-cs to develop
+[33mccc44ec[m[33m ([m[1;31morigin/refactor/cleanup-program-cs[m[33m)[m HEAD@{17}: commit: refactor: clean up Program.cs after merge conflict
+[33m03a9afe[m HEAD@{18}: checkout: moving from develop to refactor/cleanup-program-cs
+[33m03a9afe[m HEAD@{19}: reset: moving to origin/develop
+[33m9267896[m HEAD@{20}: commit: style: resolve merge conflicts and cleanup Program.cs
+[33m03a9afe[m HEAD@{21}: pull --progress --no-edit --no-stat --recurse-submodules=no origin: Fast-forward
+[33m89aa639[m HEAD@{22}: checkout: moving from feature/db-migration to develop
+[33mf3bea06[m[33m ([m[1;31morigin/feature/db-migration[m[33m)[m HEAD@{23}: commit: feat: added seeder for roles
+[33m9d272a0[m HEAD@{24}: commit: feat: added automatic migration on application startup
+[33m89aa639[m HEAD@{25}: checkout: moving from develop to feature/db-migration
+[33m89aa639[m HEAD@{26}: checkout: moving from feature/add-image-service to develop
+[33maf4757c[m[33m ([m[1;31morigin/feature/add-image-service[m[33m)[m HEAD@{27}: commit: chore: remove tracked images folder and update gitignore
+[33m644b9b2[m HEAD@{28}: commit: chore: exclude images directory from git tracking
+[33ma8a8266[m HEAD@{29}: commit: feat: Added imageServis and TestImageContriller
+[33m89aa639[m HEAD@{30}: checkout: moving from develop to feature/add-image-service
+[33m89aa639[m HEAD@{31}: pull --progress --no-edit --no-stat --recurse-submodules=no origin: Fast-forward
+[33mc2752c9[m HEAD@{32}: checkout: moving from feature/swagger-integration to develop
+[33m8922a14[m[33m ([m[1;31morigin/feature/swagger-integration[m[33m)[m HEAD@{33}: commit: refactor: remove unused MapOpenApi endpoint
+[33me109217[m HEAD@{34}: commit: feat: add swagger ui middleware
+[33mc2752c9[m HEAD@{35}: checkout: moving from develop to feature/swagger-integration
+[33mc2752c9[m HEAD@{36}: pull --progress --no-edit --no-stat --recurse-submodules=no origin: Fast-forward
+[33m47c69c8[m HEAD@{37}: checkout: moving from feature/fix-db-infrastructure to develop
+[33mc140a58[m[33m ([m[1;31morigin/feature/fix-db-infrastructure[m[33m)[m HEAD@{38}: commit: refactor: move DbContext and persistence to Infrastructure
+[33m47c69c8[m HEAD@{39}: checkout: moving from develop to feature/fix-db-infrastructure
+[33m47c69c8[m HEAD@{40}: pull: Fast-forward
+[33mcdab64b[m HEAD@{41}: commit: feat: initialize ASP.NET Core Web API project
+[33m55c9fe1[m[33m ([m[1;32mmain[m[33m)[m HEAD@{42}: checkout: moving from main to develop
+[33m55c9fe1[m[33m ([m[1;32mmain[m[33m)[m HEAD@{43}: clone: from https://github.com/makeup-clone/makeup-api.git
