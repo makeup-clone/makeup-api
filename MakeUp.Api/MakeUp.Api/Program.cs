@@ -36,6 +36,18 @@ builder.Services.AddIdentity<UserEntity, RoleEntity>(options =>
 builder.Services.AddControllers();
 builder.Services.AddSwaggerGen();
 
+string webUrl = builder.Configuration.GetValue<string>("WebUrl") ?? "http://localhost:5173";
+
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowReactApp", policy =>
+    {
+        policy.WithOrigins(webUrl)
+              .AllowAnyHeader()
+              .AllowAnyMethod();
+    });
+});
+
 var app = builder.Build();
  
 // Configure the HTTP request pipeline.
@@ -45,6 +57,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+app.UseCors("AllowReactApp");
 
 app.UseAuthorization();
 
