@@ -2,15 +2,13 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.Formats.Webp;
-using SixLabors.ImageSharp.Processing;
+using SkiaSharp;
 
 namespace Application.Services;
 
 public class ImageService(IConfiguration configuration, ILogger<ImageService> logger) : IImageService
 {
-    public async Task<string> UploadImageAsync(IFormFile file, int maxWidth, int maxHeight, CancellationToken cancellationToken)
+    public async Task<string> UploadImageAsync(IFormFile file, int maxWidth, int maxHeight, CancellationToken cancellationToken = default, int quality = 80)
     {
         if (file == null || file.Length == 0)
         {
@@ -31,21 +29,47 @@ public class ImageService(IConfiguration configuration, ILogger<ImageService> lo
             }
 
             var filePath = Path.Combine(uploadPath, fileName);
-
+            cancellationToken.ThrowIfCancellationRequested();
             using var stream = file.OpenReadStream();
-            using var image = await Image.LoadAsync(stream, cancellationToken);
+            using var originalBitmap = SKBitmap.Decode(stream);
 
-            // Це захищає від розтягування(upscaling) і втрати якості невеликих фото.
-            if (image.Width > maxWidth || image.Height > maxHeight)
+            if (originalBitmap == null)
+                throw new InvalidOperationException("Failed to decode the image file.");
+
+            SKBitmap bitmapToSave = originalBitmap;
+            bool needsResize = originalBitmap.Width > maxWidth || originalBitmap.Height > maxHeight;
+
+            if (needsResize)
             {
-                image.Mutate(imgc => imgc.Resize(new ResizeOptions
-                {
-                    Size = new Size(maxWidth, maxHeight),
-                    Mode = ResizeMode.Max
-                }));
+                double widthRatio = (double)maxWidth / originalBitmap.Width;
+                double heightRatio = (double)maxHeight / originalBitmap.Height;
+                double ratio = Math.Min(widthRatio, heightRatio);
+
+                int newWidth = (int)(originalBitmap.Width * ratio);
+                int newHeight = (int)(originalBitmap.Height * ratio);
+
+                var resizedBitmap = originalBitmap.Resize(new SKImageInfo(newWidth, newHeight), SKSamplingOptions.Default);
+
+                if (resizedBitmap != null)
+                    bitmapToSave = resizedBitmap;
             }
 
-            await image.SaveAsync(filePath, new WebpEncoder(), cancellationToken);
+            try
+            {
+                using var image = SKImage.FromBitmap(bitmapToSave);
+                using var encodedData = image.Encode(SKEncodedImageFormat.Webp, quality);
+
+                await using var fileStream = new FileStream(filePath, FileMode.Create, FileAccess.Write, FileShare.None, 4096, useAsync: true);
+                await using var dataStream = encodedData.AsStream();
+
+                await dataStream.CopyToAsync(fileStream, cancellationToken);
+            }
+            finally
+            {
+                // Якщо створювався окремий бітмап для ресайзу — звільняємо пам'ять
+                if (bitmapToSave != originalBitmap)
+                    bitmapToSave.Dispose();
+            }
 
             return fileName;
         }
