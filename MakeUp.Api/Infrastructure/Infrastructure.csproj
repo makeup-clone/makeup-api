@@ -7,13 +7,11 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="Seed\Data\Users.json" />
-	  <None Remove="Seed\Data\Categories.json" />
+    <None Remove="Seed\Data\*.json" />
   </ItemGroup>
 
   <ItemGroup>
-    <EmbeddedResource Include="Seed\Data\Users.json" />
-    <EmbeddedResource Include="Seed\Data\Categories.json" />
+    <EmbeddedResource Include="Seed\Data\*.json" />
   </ItemGroup>
 	
   <ItemGroup>
@@ -31,12 +29,5 @@
   <ItemGroup>
     <ProjectReference Include="..\Application\Application.csproj" />
   </ItemGroup>
-
-	<ItemGroup>
-		<None Update="Seed/Data/**/*.json">
-			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-			<CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
-		</None>
-	</ItemGroup>
 
 </Project>
