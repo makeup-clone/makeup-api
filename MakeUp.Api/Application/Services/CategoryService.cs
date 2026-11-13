@@ -1,11 +1,11 @@
 ﻿using Application.Interfaces;
+using Application.Mappers;
 using Application.Models;
-using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 
 namespace Application.Services;
 
-public class CategoryService(IAppDbContext context, IMapper mapper) : ICategoryService
+public class CategoryService(IAppDbContext context, CategoryMapper categoryMapper) : ICategoryService
 {
     public async Task<List<CategoryModel>> GetCategoriesAsync()
     {
@@ -17,6 +17,6 @@ public class CategoryService(IAppDbContext context, IMapper mapper) : ICategoryS
             .Where(c => c.ParentId == null)
             .ToList();
 
-        return mapper.Map<List<CategoryModel>>(rootCategories);
+        return categoryMapper.MapChildren(rootCategories);
     }
 }

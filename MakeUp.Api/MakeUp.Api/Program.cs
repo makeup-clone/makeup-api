@@ -1,4 +1,5 @@
 using Application.Interfaces;
+using Application.Mappers;
 using Application.Services;
 using Domain.Entities.Identity;
 using Infrastructure;
@@ -18,7 +19,7 @@ builder.Services.AddScoped<IAppDbContext>(provider => provider.GetRequiredServic
 builder.Services.AddScoped<IImageService, ImageService>();
 builder.Services.AddScoped<ICategoryService, CategoryService>();
 
-builder.Services.AddAutoMapper(cfg => {}, AppDomain.CurrentDomain.GetAssemblies());
+builder.Services.AddSingleton<CategoryMapper>();
 
 builder.Services.AddIdentity<UserEntity, RoleEntity>(options =>
 {
