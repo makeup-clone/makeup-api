@@ -109,37 +109,27 @@ public static class DbSeeder
 
     public static async Task SeedCategoriesAsync(AppDbContext dbContext, ILogger logger)
     {
-        string jsonName = "Categories.json";
-        var filePath = Path.Combine(AppContext.BaseDirectory, "Seed", "Data",jsonName);
-
-        Console.WriteLine($"Шлях до файлу: {filePath}");
-
-        if (!File.Exists(filePath))
+        var domainAssembly = typeof(DbSeeder).Assembly;
+        var jsonPath = "Infrastructure.Seed.Data.Categories.json";
+        using var stream = domainAssembly.GetManifestResourceStream(jsonPath);
+        if (stream == null)
         {
-            logger.LogError("Файл {JsonName} не знайдено", jsonName);
+            logger.LogError("Не вдалося знайти вбудований ресурс {JsonPath}. Перевірте назву шляху та Build Action файлу.", jsonPath);
             return;
         }
+        using var reader = new StreamReader(stream);
+        var json = await reader.ReadToEndAsync();
 
-        var json = await File.ReadAllTextAsync(filePath);
-        var options = new JsonSerializerOptions
+        var categories = JsonSerializer.Deserialize<List<CategorySeedModel>>(json);
+
+        if (categories == null || categories.Count == 0)
         {
-            PropertyNameCaseInsensitive = true
-        };
-
-        var categories = JsonSerializer.Deserialize<List<CategorySeedModel>>(json, options);
-
-        if (categories is null)
-        {
-            logger.LogInformation("Categories.json не має даних для seed");
+            logger.LogError("Не вдалося отримати список категорій. Список дорівнює null або являється пустим");
             return;
         }
 
         foreach (var model in categories)
-        {
             await AddCategoryAsync(model, dbContext, null);
-        }
-
-        logger.LogInformation("Успішно додано усі категорії");
     }
 
     public static async Task AddCategoryAsync(CategorySeedModel categorySeedModel, AppDbContext dbContext, long? parentId)
@@ -147,9 +137,7 @@ public static class DbSeeder
         var category = await dbContext.Categories
                 .FirstOrDefaultAsync(x => x.UrlSlug == categorySeedModel.UrlSlug);
 
-        Console.WriteLine($"Додаємо категорію: {categorySeedModel.Name}, UrlSlug: {categorySeedModel.UrlSlug}, ParentId: {parentId}");
-
-        if (category is null)
+        if (category == null)
         {
             category = new CategoryEntity
             {
@@ -166,8 +154,6 @@ public static class DbSeeder
         }
 
         foreach (var child in categorySeedModel.Children)
-        {
             await AddCategoryAsync(child, dbContext, category.Id);
-        }
     }
 }
