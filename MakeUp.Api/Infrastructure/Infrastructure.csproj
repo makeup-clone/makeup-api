@@ -8,10 +8,12 @@
 
   <ItemGroup>
     <None Remove="Seed\Data\Users.json" />
+	  <None Remove="Seed\Data\Categories.json" />
   </ItemGroup>
 
   <ItemGroup>
     <EmbeddedResource Include="Seed\Data\Users.json" />
+    <EmbeddedResource Include="Seed\Data\Categories.json" />
   </ItemGroup>
 	
   <ItemGroup>
