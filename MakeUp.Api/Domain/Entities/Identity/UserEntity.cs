@@ -17,6 +17,9 @@ public class UserEntity : IdentityUser<long>
 
     public virtual ICollection<UserRoleEntity>? UserRoles { get; set; }
     public virtual ICollection<UserLoginEntity>? UserLogins { get; set; }
+    public virtual ICollection<ReviewEntity>? Reviews { get; set; }
+    public virtual ICollection<CartEntity>? Carts { get; set; }
+    public virtual ICollection<FavoriteEntity>? Favorites { get; set; }
 
     public bool IsDeleted { get; set; }
 }
