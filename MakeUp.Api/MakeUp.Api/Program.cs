@@ -9,6 +9,7 @@ using Infrastructure.Seed;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.FileProviders;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 
@@ -116,6 +117,15 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+
+var dirImageName = builder.Configuration.GetValue<string>("DirImageName") ?? "images";
+var path = Path.Combine(Directory.GetCurrentDirectory(), dirImageName);
+Directory.CreateDirectory(path);
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = new PhysicalFileProvider(path),
+    RequestPath = $"/{dirImageName}"
+});
 
 using (var scope = app.Services.CreateScope())
 {
