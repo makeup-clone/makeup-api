@@ -3,6 +3,7 @@ using Application.Models;
 using Domain.Constants;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace MakeUp.Api.Controllers;
 
@@ -72,6 +73,21 @@ public class AuthController(IAuthService authService) : ControllerBase
     {
         DeleteTokenCookie();
         return Ok(new { message = "Успішний вихід з системи" });
+    }
+
+    [HttpGet]
+    [Authorize]
+    public async Task<IActionResult> Profile()
+    {
+        return Ok(new
+        {
+            id = User.FindFirstValue("id"),
+            email = User.FindFirstValue(ClaimTypes.Email),
+            firstName = User.FindFirstValue("firstName"),
+            lastName = User.FindFirstValue("lastName"),
+            image = User.FindFirstValue("image"),
+            roles = User.FindAll(ClaimTypes.Role).Select(r => r.Value)
+        });
     }
 
     [HttpGet]
