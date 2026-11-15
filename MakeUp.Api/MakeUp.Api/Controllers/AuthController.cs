@@ -22,6 +22,18 @@ public class AuthController(IAuthService authService) : ControllerBase
 
         Response.Cookies.Append(CookieConstants.AccessTokenCookieName, token, cookieOptions);
     }
+    private void DeleteTokenCookie()
+    {
+        var cookieOptions = new CookieOptions
+        {
+            HttpOnly = true,
+            Secure = false, // Має збігатися з параметром при встановленні
+            SameSite = SameSiteMode.Strict,
+            Expires = DateTimeOffset.UtcNow.AddDays(-1)
+        };
+
+        Response.Cookies.Delete(CookieConstants.AccessTokenCookieName, cookieOptions);
+    }
 
     [HttpPost]
     public async Task<IActionResult> Register([FromForm] RegisterModel model, CancellationToken cancellationToken)
@@ -37,6 +49,29 @@ public class AuthController(IAuthService authService) : ControllerBase
             return BadRequest(new { message = ex.Message});
         }
         
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> Login([FromBody] LoginModel model, CancellationToken cancellationToken)
+    {
+        try
+        {
+            var authResponce = await authService.LoginAsync(model, cancellationToken);
+            SetTokenCookie(authResponce.AccessToken);
+            return Ok(new { message = "Успішний вхід" });
+        }
+        catch (Exception ex)
+        {
+            return Unauthorized(new { message = ex.Message });
+        }
+    }
+
+    [HttpPost]
+    [Authorize]
+    public async Task<IActionResult> Logout()
+    {
+        DeleteTokenCookie();
+        return Ok(new { message = "Успішний вихід з системи" });
     }
 
     [HttpGet]

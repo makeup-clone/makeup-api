@@ -41,4 +41,18 @@ public class AuthService(UserManager<UserEntity> userManager, IImageService imag
         var token = await jwtTokenService.CreateTokenAsync(user);
         return new AuthResponceModel { AccessToken = token };
     }
+
+    public async Task<AuthResponceModel> LoginAsync(LoginModel model, CancellationToken cancellationToken)
+    {
+        var user = await userManager.FindByEmailAsync(model.Email);
+        if (user == null)
+            throw new Exception("Невірний email або пароль.");
+
+        var isPassValid = await userManager.CheckPasswordAsync(user, model.Password);
+        if (!isPassValid)
+            throw new Exception("Невірний email або пароль.");
+
+        var token = await jwtTokenService.CreateTokenAsync(user);
+        return new AuthResponceModel { AccessToken = token };
+    }
 }
