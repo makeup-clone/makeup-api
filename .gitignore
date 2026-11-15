@@ -282,3 +282,5 @@ yarn-error.log*
 package-lock.json
 
 **/Properties/PublishProfiles/
+**/MakeUp.Api/images/*
+!**/MakeUp.Api/images/default-user.webp
