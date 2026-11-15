@@ -4,7 +4,7 @@
     "Password": "Admin123",
     "FirstName": "Адміністратор",
     "LastName": "Системи",
-    "Image": "DefaultUser.webp",
+    "Image": "default-user.webp",
     "Roles": [ "Admin" ]
   },
   {
@@ -12,7 +12,7 @@
     "Password": "User123",
     "FirstName": "Іван",
     "LastName": "Петрович",
-    "Image": "DefaultUser.webp",
+    "Image": "default-user.webp",
     "Roles": [ "User" ]
   }
 ]
