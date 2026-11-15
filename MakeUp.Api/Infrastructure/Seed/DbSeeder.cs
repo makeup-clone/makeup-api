@@ -1,12 +1,12 @@
 ﻿using System.Text.Json;
 using Domain.Entities.Identity;
 using Domain.Entities;
-using Infrastructure.Constants;
 using Infrastructure.Seed.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Domain.Constants;
 
 namespace Infrastructure.Seed;
 
