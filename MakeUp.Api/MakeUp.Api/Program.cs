@@ -1,11 +1,15 @@
 using Application.Interfaces;
 using Application.Mappers;
 using Application.Services;
+using Domain.Constants;
 using Domain.Entities.Identity;
 using Infrastructure;
 using Infrastructure.Seed;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 
 Console.OutputEncoding = System.Text.Encoding.UTF8;
 
@@ -16,10 +20,13 @@ builder.Services.AddDbContext<AppDbContext>(opt =>
     opt.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 builder.Services.AddScoped<IAppDbContext>(provider => provider.GetRequiredService<AppDbContext>());
 
+builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IImageService, ImageService>();
+builder.Services.AddScoped<IJwtTokenService, JwtTokenService>();
 builder.Services.AddScoped<ICategoryService, CategoryService>();
 
 builder.Services.AddSingleton<CategoryMapper>();
+builder.Services.AddSingleton<UserMapper>();
 
 builder.Services.AddIdentity<UserEntity, RoleEntity>(options =>
 {
@@ -45,8 +52,36 @@ builder.Services.AddCors(options =>
     {
         policy.WithOrigins(webUrl)
               .AllowAnyHeader()
-              .AllowAnyMethod();
+              .AllowAnyMethod()
+              .AllowCredentials();
     });
+});
+
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+}).AddJwtBearer(options =>
+{
+    options.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateIssuer = true,
+        ValidateAudience = true,
+        ValidateLifetime = true,
+        ValidateIssuerSigningKey = true,
+        ValidIssuer = builder.Configuration["Jwt:Issuer"],
+        ValidAudience = builder.Configuration["Jwt:Audience"],
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]!))
+    };
+
+    options.Events = new JwtBearerEvents
+    {
+        OnMessageReceived = context =>
+        {
+            context.Token = context.Request.Cookies[CookieConstants.AccessTokenCookieName];
+            return Task.CompletedTask;
+        }
+    };
 });
 
 var app = builder.Build();
@@ -60,6 +95,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseCors("AllowReactApp");
 
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
