@@ -1,5 +1,6 @@
 using Application.Interfaces;
 using Application.Mappers;
+using Application.Models;
 using Application.Services;
 using Domain.Constants;
 using Domain.Entities.Identity;
@@ -8,6 +9,7 @@ using Infrastructure.Seed;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.FileProviders;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 
@@ -42,7 +44,23 @@ builder.Services.AddIdentity<UserEntity, RoleEntity>(options =>
 
 
 builder.Services.AddControllers();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(options =>
+{
+    Type[] markerTypes = new[]
+    {
+        // сюди додавати об'єкти яким потрібна xml документація на swagger
+        typeof(RegisterModel),
+    };
+
+    foreach (var type in markerTypes)
+    {
+        var assemblyName = type.Assembly.GetName().Name;
+        var xmlPath = Path.Combine(AppContext.BaseDirectory, $"{assemblyName}.xml");
+
+        if (File.Exists(xmlPath))
+            options.IncludeXmlComments(xmlPath);
+    }
+});
 
 string webUrl = builder.Configuration.GetValue<string>("WebUrl") ?? "http://localhost:5173";
 
@@ -99,6 +117,15 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+
+var dirImageName = builder.Configuration.GetValue<string>("DirImageName") ?? "images";
+var path = Path.Combine(Directory.GetCurrentDirectory(), dirImageName);
+Directory.CreateDirectory(path);
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = new PhysicalFileProvider(path),
+    RequestPath = $"/{dirImageName}"
+});
 
 using (var scope = app.Services.CreateScope())
 {
