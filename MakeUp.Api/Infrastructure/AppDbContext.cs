@@ -27,6 +27,7 @@ public class AppDbContext : IdentityDbContext<
     public DbSet<BrandEntity> Brands { get; set; }
     public DbSet<ProductImageEntity> ProductImages { get; set; }
     public DbSet<ProductAttributeEntity> ProductAttributes { get; set; }
+    public DbSet<ProductAttributeValueEntity> ProductAttributeValues { get; set; }
     public DbSet<AttributeValueEntity> AttributeValues { get; set; }
     public DbSet<ProductVariantEntity> ProductVariants { get; set; }
     public DbSet<ReviewEntity> Reviews { get; set; }

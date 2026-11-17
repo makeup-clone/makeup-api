@@ -27,9 +27,10 @@ public static class DbSeeder
         await SeedCategoriesAsync(dbContext, logger);
         await SeedBrandsAsync(dbContext, logger);
         await SeedProductsAsync(dbContext, logger);
-        await SeedFavoritesAsync(dbContext, logger);
-        await SeedCartsAsync(dbContext, logger);
         await SeedReviewsAsync(dbContext, logger);
+        await SeedProductAttributesAsync(dbContext, logger);
+        await SeedAttributeValuesAsync(dbContext, logger);
+        await SeedProductAttributeValuesAsync(dbContext, logger);
 
         // Тут у майбутньому можна БАЖАНО додати інші сідери
     }
@@ -247,83 +248,6 @@ public static class DbSeeder
         await dbContext.SaveChangesAsync();
     }
 
-    public static async Task SeedFavoritesAsync(AppDbContext dbContext, ILogger logger)
-    {
-        var domainAssembly = typeof(DbSeeder).Assembly;
-        var jsonPath = "Infrastructure.Seed.Data.Favorites.json";
-        using var stream = domainAssembly.GetManifestResourceStream(jsonPath);
-        if (stream == null)
-        {
-            logger.LogError("Не вдалося знайти вбудований ресурс {JsonPath}. Перевірте назву шляху та Build Action файлу.", jsonPath);
-            return;
-        }
-        using var reader = new StreamReader(stream);
-        var json = await reader.ReadToEndAsync();
-
-        var favorites = JsonSerializer.Deserialize<List<FavoriteSeedModel>>(json);
-
-        if (favorites == null || favorites.Count == 0)
-        {
-            logger.LogError("Не вдалося отримати список улюблених. Список дорівнює null або являється пустим");
-            return;
-        }
-
-        foreach (var model in favorites)
-        {
-            var existingFavorite = await dbContext.Favorites.FirstOrDefaultAsync(f => f.UserId == model.UserId && f.ProductId == model.ProductId);
-            if (existingFavorite != null)
-                continue;
-
-            var favorite = new FavoriteEntity
-            {
-                UserId = model.UserId,
-                ProductId = model.ProductId
-            };
-
-            await dbContext.Favorites.AddAsync(favorite);
-        }
-        await dbContext.SaveChangesAsync();
-    }
-
-    public static async Task SeedCartsAsync(AppDbContext dbContext, ILogger logger)
-    {
-        var domainAssembly = typeof(DbSeeder).Assembly;
-        var jsonPath = "Infrastructure.Seed.Data.Carts.json";
-        using var stream = domainAssembly.GetManifestResourceStream(jsonPath);
-        if (stream == null)
-        {
-            logger.LogError("Не вдалося знайти вбудований ресурс {JsonPath}. Перевірте назву шляху та Build Action файлу.", jsonPath);
-            return;
-        }
-        using var reader = new StreamReader(stream);
-        var json = await reader.ReadToEndAsync();
-
-        var carts = JsonSerializer.Deserialize<List<CartSeedModel>>(json);
-
-        if (carts == null || carts.Count == 0)
-        {
-            logger.LogError("Не вдалося отримати список кошиків. Список дорівнює null або являється пустим");
-            return;
-        }
-
-        foreach (var model in carts)
-        {
-            var existingCart = await dbContext.Carts.FirstOrDefaultAsync(c => c.UserId == model.UserId && c.ProductId == model.ProductId);
-            if (existingCart != null)
-                continue;
-
-            var cart = new CartEntity
-            {
-                UserId = model.UserId,
-                ProductId = model.ProductId,
-                Quantity = model.Quantity
-            };
-
-            await dbContext.Carts.AddAsync(cart);
-        }
-        await dbContext.SaveChangesAsync();
-    }
-
     public static async Task SeedReviewsAsync(AppDbContext dbContext, ILogger logger)
     {
         var domainAssembly = typeof(DbSeeder).Assembly;
@@ -373,5 +297,119 @@ public static class DbSeeder
 
         foreach (var child in reviewSeedModel.Replies)
             await AddReviewAsync(child, dbContext, child.ParentId);
+    }
+
+    public static async Task SeedProductAttributesAsync(AppDbContext dbContext, ILogger logger)
+    {
+        var domainAssembly = typeof(DbSeeder).Assembly;
+        var jsonPath = "Infrastructure.Seed.Data.ProductAttributes.json";
+        using var stream = domainAssembly.GetManifestResourceStream(jsonPath);
+        if (stream == null)
+        {
+            logger.LogError("Не вдалося знайти вбудований ресурс {JsonPath}. Перевірте назву шляху та Build Action файлу.", jsonPath);
+            return;
+        }
+        using var reader = new StreamReader(stream);
+        var json = await reader.ReadToEndAsync();
+
+        var productAttributes = JsonSerializer.Deserialize<List<ProductAttributeSeedModel>>(json);
+
+        if (productAttributes == null || productAttributes.Count == 0)
+        {
+            logger.LogError("Не вдалося отримати список атрибутів товару. Список дорівнює null або являється пустим");
+            return;
+        }
+
+        foreach (var model in productAttributes)
+        {
+            var existingProduct = await dbContext.ProductAttributes.FirstOrDefaultAsync(p => p.Name == model.Name);
+            if (existingProduct != null)
+                continue;
+
+            var productAttribute = new ProductAttributeEntity
+            {
+                Name = model.Name,
+                Slug = model.Slug,
+            };
+
+            await dbContext.ProductAttributes.AddAsync(productAttribute);
+        }
+        await dbContext.SaveChangesAsync();
+    }
+
+    public static async Task SeedAttributeValuesAsync(AppDbContext dbContext, ILogger logger)
+    {
+        var domainAssembly = typeof(DbSeeder).Assembly;
+        var jsonPath = "Infrastructure.Seed.Data.AttributeValues.json";
+        using var stream = domainAssembly.GetManifestResourceStream(jsonPath);
+        if (stream == null)
+        {
+            logger.LogError("Не вдалося знайти вбудований ресурс {JsonPath}. Перевірте назву шляху та Build Action файлу.", jsonPath);
+            return;
+        }
+        using var reader = new StreamReader(stream);
+        var json = await reader.ReadToEndAsync();
+
+        var attributeValues = JsonSerializer.Deserialize<List<AttributeValueSeedModel>>(json);
+
+        if (attributeValues == null || attributeValues.Count == 0)
+        {
+            logger.LogError("Не вдалося отримати список значень атрибутів. Список дорівнює null або являється пустим");
+            return;
+        }
+
+        foreach (var model in attributeValues)
+        {
+            var existingValue = await dbContext.AttributeValues.FirstOrDefaultAsync(v => v.ProductAttributeId == model.ProductAttributeId && v.Value == model.Value);
+            if (existingValue != null)
+                continue;
+
+            var attributeValue = new AttributeValueEntity
+            {
+                ProductAttributeId = model.ProductAttributeId,
+                Value = model.Value,
+            };
+
+            await dbContext.AttributeValues.AddAsync(attributeValue);
+        }
+        await dbContext.SaveChangesAsync();
+    }
+
+    public static async Task SeedProductAttributeValuesAsync(AppDbContext dbContext, ILogger logger)
+    {
+        var domainAssembly = typeof(DbSeeder).Assembly;
+        var jsonPath = "Infrastructure.Seed.Data.ProductAttributeValues.json";
+        using var stream = domainAssembly.GetManifestResourceStream(jsonPath);
+        if (stream == null)
+        {
+            logger.LogError("Не вдалося знайти вбудований ресурс {JsonPath}. Перевірте назву шляху та Build Action файлу.", jsonPath);
+            return;
+        }
+        using var reader = new StreamReader(stream);
+        var json = await reader.ReadToEndAsync();
+
+        var productAttributeValues = JsonSerializer.Deserialize<List<ProductAttributeValueSeedModel>>(json);
+
+        if (productAttributeValues == null || productAttributeValues.Count == 0)
+        {
+            logger.LogError("Не вдалося отримати список прив'язаних значень атрибутів. Список дорівнює null або являється пустим");
+            return;
+        }
+
+        foreach (var model in productAttributeValues)
+        {
+            var existingValue = await dbContext.ProductAttributeValues.FirstOrDefaultAsync(v => v.ProductId == model.ProductId && v.AttributeValueId == model.AttributeValueId);
+            if (existingValue != null)
+                continue;
+
+            var productAttributeValue = new ProductAttributeValueEntity
+            {
+                ProductId = model.ProductId,
+                AttributeValueId = model.AttributeValueId,
+            };
+
+            await dbContext.ProductAttributeValues.AddAsync(productAttributeValue);
+        }
+        await dbContext.SaveChangesAsync();
     }
 }
