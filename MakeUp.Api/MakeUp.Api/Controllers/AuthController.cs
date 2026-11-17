@@ -41,8 +41,8 @@ public class AuthController(IAuthService authService) : ControllerBase
     {
         try
         {
-            var authResponce = await authService.RegisterAsync(model, cancellationToken);
-            SetTokenCookie(authResponce.AccessToken);
+            var authResponse = await authService.RegisterAsync(model, cancellationToken);
+            SetTokenCookie(authResponse.AccessToken);
             return Ok(new { message = "Реєстрація успішна" });
         }
         catch (Exception ex)
@@ -53,12 +53,12 @@ public class AuthController(IAuthService authService) : ControllerBase
     }
 
     [HttpPost]
-    public async Task<IActionResult> Login([FromBody] LoginModel model, CancellationToken cancellationToken)
+    public async Task<IActionResult> Login([FromBody] LoginModel model)
     {
         try
         {
-            var authResponce = await authService.LoginAsync(model, cancellationToken);
-            SetTokenCookie(authResponce.AccessToken);
+            var authResponse = await authService.LoginAsync(model);
+            SetTokenCookie(authResponse.AccessToken);
             return Ok(new { message = "Успішний вхід" });
         }
         catch (Exception ex)
@@ -88,6 +88,21 @@ public class AuthController(IAuthService authService) : ControllerBase
             image = User.FindFirstValue("image"),
             roles = User.FindAll(ClaimTypes.Role).Select(r => r.Value)
         });
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> GoogleLogin([FromBody] GoogleLoginModel model)
+    {
+        try
+        {
+            var authResponse = await authService.GoogleLoginAsync(model);
+            SetTokenCookie(authResponse.AccessToken);
+            return Ok(new { message = "Успішний вхід через Google" });
+        }
+        catch  (Exception ex) 
+        {
+            return Unauthorized(new {message = ex.Message}); 
+        }
     }
 
     [HttpGet]
