@@ -29,6 +29,7 @@ public static class DbSeeder
         await SeedProductsAsync(dbContext, logger);
         await SeedFavoritesAsync(dbContext, logger);
         await SeedCartsAsync(dbContext, logger);
+        await SeedReviewsAsync(dbContext, logger);
 
         // Тут у майбутньому можна БАЖАНО додати інші сідери
     }
@@ -321,5 +322,56 @@ public static class DbSeeder
             await dbContext.Carts.AddAsync(cart);
         }
         await dbContext.SaveChangesAsync();
+    }
+
+    public static async Task SeedReviewsAsync(AppDbContext dbContext, ILogger logger)
+    {
+        var domainAssembly = typeof(DbSeeder).Assembly;
+        var jsonPath = "Infrastructure.Seed.Data.Reviews.json";
+        using var stream = domainAssembly.GetManifestResourceStream(jsonPath);
+        if (stream == null)
+        {
+            logger.LogError("Не вдалося знайти вбудований ресурс {JsonPath}. Перевірте назву шляху та Build Action файлу.", jsonPath);
+            return;
+        }
+        using var reader = new StreamReader(stream);
+        var json = await reader.ReadToEndAsync();
+
+        var reviews = JsonSerializer.Deserialize<List<ReviewSeedModel>>(json);
+
+        if (reviews == null || reviews.Count == 0)
+        {
+            logger.LogError("Не вдалося отримати список відгуків. Список дорівнює null або являється пустим");
+            return;
+        }
+
+        foreach (var model in reviews)
+            await AddReviewAsync(model, dbContext);
+    }
+
+    public static async Task AddReviewAsync(ReviewSeedModel reviewSeedModel, AppDbContext dbContext, long? parentId = null)
+    {
+        var review = await dbContext.Reviews
+                .FirstOrDefaultAsync(x => x.UserId == reviewSeedModel.UserId && x.ProductId == reviewSeedModel.ProductId);
+
+        if (review == null)
+        {
+            review = new ReviewEntity
+            {
+                UserId = reviewSeedModel.UserId,
+                ProductId = reviewSeedModel.ProductId,
+                Rating = reviewSeedModel.Rating,
+                Text = reviewSeedModel.Text,
+                LikesCount = reviewSeedModel.LikesCount,
+                DislikesCount = reviewSeedModel.DislikesCount,
+                ParentId = reviewSeedModel.ParentId
+            };
+
+            await dbContext.Reviews.AddAsync(review);
+            await dbContext.SaveChangesAsync();
+        }
+
+        foreach (var child in reviewSeedModel.Replies)
+            await AddReviewAsync(child, dbContext, child.ParentId);
     }
 }
