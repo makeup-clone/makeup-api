@@ -120,7 +120,12 @@ public static class DbSeeder
         using var reader = new StreamReader(stream);
         var json = await reader.ReadToEndAsync();
 
-        var categories = JsonSerializer.Deserialize<List<CategorySeedModel>>(json);
+        var options = new JsonSerializerOptions
+        {
+            PropertyNameCaseInsensitive = true
+        };
+
+        var categories = JsonSerializer.Deserialize<List<CategorySeedModel>>(json, options);
 
         if (categories == null || categories.Count == 0)
         {
