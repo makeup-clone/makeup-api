@@ -27,6 +27,8 @@ public static class DbSeeder
         await SeedCategoriesAsync(dbContext, logger);
         await SeedBrandsAsync(dbContext, logger);
         await SeedProductsAsync(dbContext, logger);
+        await SeedFavoritesAsync(dbContext, logger);
+        await SeedCartsAsync(dbContext, logger);
 
         // Тут у майбутньому можна БАЖАНО додати інші сідери
     }
@@ -215,7 +217,7 @@ public static class DbSeeder
         using var reader = new StreamReader(stream);
         var json = await reader.ReadToEndAsync();
 
-        var products = JsonSerializer.Deserialize<List<ProductsSeedModel>>(json);
+        var products = JsonSerializer.Deserialize<List<ProductSeedModel>>(json);
 
         if (products == null || products.Count == 0)
         {
@@ -240,6 +242,83 @@ public static class DbSeeder
             };
 
             await dbContext.Products.AddAsync(product);
+        }
+        await dbContext.SaveChangesAsync();
+    }
+
+    public static async Task SeedFavoritesAsync(AppDbContext dbContext, ILogger logger)
+    {
+        var domainAssembly = typeof(DbSeeder).Assembly;
+        var jsonPath = "Infrastructure.Seed.Data.Favorites.json";
+        using var stream = domainAssembly.GetManifestResourceStream(jsonPath);
+        if (stream == null)
+        {
+            logger.LogError("Не вдалося знайти вбудований ресурс {JsonPath}. Перевірте назву шляху та Build Action файлу.", jsonPath);
+            return;
+        }
+        using var reader = new StreamReader(stream);
+        var json = await reader.ReadToEndAsync();
+
+        var favorites = JsonSerializer.Deserialize<List<FavoriteSeedModel>>(json);
+
+        if (favorites == null || favorites.Count == 0)
+        {
+            logger.LogError("Не вдалося отримати список улюблених. Список дорівнює null або являється пустим");
+            return;
+        }
+
+        foreach (var model in favorites)
+        {
+            var existingFavorite = await dbContext.Favorites.FirstOrDefaultAsync(f => f.UserId == model.UserId && f.ProductId == model.ProductId);
+            if (existingFavorite != null)
+                continue;
+
+            var favorite = new FavoriteEntity
+            {
+                UserId = model.UserId,
+                ProductId = model.ProductId
+            };
+
+            await dbContext.Favorites.AddAsync(favorite);
+        }
+        await dbContext.SaveChangesAsync();
+    }
+
+    public static async Task SeedCartsAsync(AppDbContext dbContext, ILogger logger)
+    {
+        var domainAssembly = typeof(DbSeeder).Assembly;
+        var jsonPath = "Infrastructure.Seed.Data.Carts.json";
+        using var stream = domainAssembly.GetManifestResourceStream(jsonPath);
+        if (stream == null)
+        {
+            logger.LogError("Не вдалося знайти вбудований ресурс {JsonPath}. Перевірте назву шляху та Build Action файлу.", jsonPath);
+            return;
+        }
+        using var reader = new StreamReader(stream);
+        var json = await reader.ReadToEndAsync();
+
+        var carts = JsonSerializer.Deserialize<List<CartSeedModel>>(json);
+
+        if (carts == null || carts.Count == 0)
+        {
+            logger.LogError("Не вдалося отримати список кошиків. Список дорівнює null або являється пустим");
+            return;
+        }
+
+        foreach (var model in carts)
+        {
+            var existingCart = await dbContext.Carts.FirstOrDefaultAsync(c => c.UserId == model.UserId && c.ProductId == model.ProductId);
+            if (existingCart != null)
+                continue;
+
+            var cart = new CartEntity
+            {
+                UserId = model.UserId,
+                ProductId = model.ProductId,
+                Quantity = model.Quantity
+            };
+
+            await dbContext.Carts.AddAsync(cart);
         }
         await dbContext.SaveChangesAsync();
     }

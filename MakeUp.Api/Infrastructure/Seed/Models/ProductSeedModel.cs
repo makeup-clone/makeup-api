@@ -1,6 +1,6 @@
 ﻿namespace Infrastructure.Seed.Models;
 
-public class ProductsSeedModel
+public class ProductSeedModel
 {
     public string Name { get; set; } = string.Empty;
     public string UrlSlug { get; set; } = string.Empty;
