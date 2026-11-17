@@ -24,6 +24,7 @@ public static class DbSeeder
         await SeedRolesAsync(roleManager, logger);
         await SeedUsersAsync(userManager, logger);
         await SeedCategoriesAsync(dbContext, logger);
+        await SeedBrandsAsync(dbContext, logger);
 
         // Тут у майбутньому можна БАЖАНО додати інші сідери
     }
@@ -120,7 +121,12 @@ public static class DbSeeder
         using var reader = new StreamReader(stream);
         var json = await reader.ReadToEndAsync();
 
-        var categories = JsonSerializer.Deserialize<List<CategorySeedModel>>(json);
+        var options = new JsonSerializerOptions
+        {
+            PropertyNameCaseInsensitive = true
+        };  
+
+        var categories = JsonSerializer.Deserialize<List<CategorySeedModel>>(json, options);
 
         if (categories == null || categories.Count == 0)
         {
@@ -155,5 +161,42 @@ public static class DbSeeder
 
         foreach (var child in categorySeedModel.Children)
             await AddCategoryAsync(child, dbContext, category.Id);
+    }
+
+    public static async Task SeedBrandsAsync(AppDbContext dbContext, ILogger logger)
+    {
+        var domainAssembly = typeof(DbSeeder).Assembly;
+        var jsonPath = "Infrastructure.Seed.Data.Brands.json";
+        using var stream = domainAssembly.GetManifestResourceStream(jsonPath);
+        if (stream == null)
+        {
+            logger.LogError("Не вдалося знайти вбудований ресурс {JsonPath}. Перевірте назву шляху та Build Action файлу.", jsonPath);
+            return;
+        }
+        using var reader = new StreamReader(stream);
+        var json = await reader.ReadToEndAsync();
+
+        var brands = JsonSerializer.Deserialize<List<BrandSeedModel>>(json);
+
+        if (brands == null || brands.Count == 0)
+        {
+            logger.LogError("Не вдалося отримати список брендів. Список дорівнює null або являється пустим");
+            return;
+        }
+
+        foreach (var model in brands)
+        {
+            var existingBrand = await dbContext.Brands.FirstOrDefaultAsync(b => b.Name == model.Name);
+            if (existingBrand != null)
+                continue;
+
+            var brand = new BrandEntity
+            {
+                Name = model.Name
+            };
+
+            await dbContext.Brands.AddAsync(brand);
+        }
+        await dbContext.SaveChangesAsync();
     }
 }
