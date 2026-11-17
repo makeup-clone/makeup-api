@@ -1,12 +1,13 @@
 ﻿using System.Text.Json;
-using Domain.Entities.Identity;
+using Domain.Constants;
 using Domain.Entities;
+using Domain.Entities.Identity;
+using Domain.Entities.Product;
 using Infrastructure.Seed.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Domain.Constants;
 
 namespace Infrastructure.Seed;
 
@@ -25,6 +26,7 @@ public static class DbSeeder
         await SeedUsersAsync(userManager, logger);
         await SeedCategoriesAsync(dbContext, logger);
         await SeedBrandsAsync(dbContext, logger);
+        await SeedProductsAsync(dbContext, logger);
 
         // Тут у майбутньому можна БАЖАНО додати інші сідери
     }
@@ -196,6 +198,48 @@ public static class DbSeeder
             };
 
             await dbContext.Brands.AddAsync(brand);
+        }
+        await dbContext.SaveChangesAsync();
+    }
+
+    public static async Task SeedProductsAsync(AppDbContext dbContext, ILogger logger)
+    {
+        var domainAssembly = typeof(DbSeeder).Assembly;
+        var jsonPath = "Infrastructure.Seed.Data.Products.json";
+        using var stream = domainAssembly.GetManifestResourceStream(jsonPath);
+        if (stream == null)
+        {
+            logger.LogError("Не вдалося знайти вбудований ресурс {JsonPath}. Перевірте назву шляху та Build Action файлу.", jsonPath);
+            return;
+        }
+        using var reader = new StreamReader(stream);
+        var json = await reader.ReadToEndAsync();
+
+        var products = JsonSerializer.Deserialize<List<ProductsSeedModel>>(json);
+
+        if (products == null || products.Count == 0)
+        {
+            logger.LogError("Не вдалося отримати список продуктів. Список дорівнює null або являється пустим");
+            return;
+        }
+
+        foreach (var model in products)
+        {
+            var existingProduct = await dbContext.Products.FirstOrDefaultAsync(p => p.Name == model.Name);
+            if (existingProduct != null)
+                continue;
+
+            var product = new ProductEntity
+            {
+                Name = model.Name,
+                UrlSlug = model.UrlSlug,
+                AverageRating = model.AverageRating,
+                ReviewsCount = model.ReviewsCount,
+                BrandId = model.BrandId,
+                CategoryId = model.CategoryId
+            };
+
+            await dbContext.Products.AddAsync(product);
         }
         await dbContext.SaveChangesAsync();
     }

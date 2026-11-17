@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using Domain.Entities.Product;
 
 namespace Domain.Entities;
 
@@ -22,4 +23,5 @@ public class CategoryEntity : BaseEntity<long>
     public long? ParentId { get; set; }
     public virtual CategoryEntity Parent { get; set; } = null!;
     public virtual ICollection<CategoryEntity> Children { get; set; } = [];
+    public virtual ICollection<ProductEntity> Products { get; set; } = [];
 }

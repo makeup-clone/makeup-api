@@ -136,5 +136,25 @@ public class AppDbContext : IdentityDbContext<
                 .WithMany(pa => pa.Values)
                 .HasForeignKey(av => av.ProductAttributeId);
         });
+
+        modelBuilder.Entity<CategoryEntity>(c =>
+        {
+            c.HasMany(c => c.Children)
+                .WithOne(c => c.Parent)
+                .HasForeignKey(c => c.ParentId);
+            c.HasMany(c => c.Products)
+                .WithOne(p => p.Category)
+                .HasForeignKey(p => p.CategoryId);
+        });
+
+        modelBuilder.Entity<ProductEntity>(p =>
+        {
+            p.HasOne(p => p.Brand)
+                .WithMany(b => b.Products)
+                .HasForeignKey(p => p.BrandId);
+            p.HasOne(p => p.Category)
+                .WithMany(c => c.Products)
+                .HasForeignKey(p => p.CategoryId);
+        });
     }
 }

@@ -390,6 +390,9 @@ namespace Infrastructure.Migrations
                     b.Property<long>("BrandId")
                         .HasColumnType("bigint");
 
+                    b.Property<long>("CategoryId")
+                        .HasColumnType("bigint");
+
                     b.Property<DateTime>("DateCreated")
                         .HasColumnType("timestamp with time zone");
 
@@ -412,6 +415,8 @@ namespace Infrastructure.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("BrandId");
+
+                    b.HasIndex("CategoryId");
 
                     b.ToTable("tblProducts");
                 });
@@ -727,7 +732,15 @@ namespace Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("Domain.Entities.CategoryEntity", "Category")
+                        .WithMany("Products")
+                        .HasForeignKey("CategoryId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.Navigation("Brand");
+
+                    b.Navigation("Category");
                 });
 
             modelBuilder.Entity("Domain.Entities.Product.ProductImageEntity", b =>
@@ -810,6 +823,8 @@ namespace Infrastructure.Migrations
             modelBuilder.Entity("Domain.Entities.CategoryEntity", b =>
                 {
                     b.Navigation("Children");
+
+                    b.Navigation("Products");
                 });
 
             modelBuilder.Entity("Domain.Entities.Identity.RoleEntity", b =>
