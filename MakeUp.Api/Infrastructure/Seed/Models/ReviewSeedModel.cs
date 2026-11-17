@@ -1,6 +1,4 @@
-﻿using Domain.Entities;
-
-namespace Infrastructure.Seed.Models;
+﻿namespace Infrastructure.Seed.Models;
 public class ReviewSeedModel
 {
     public long ProductId { get; set; }

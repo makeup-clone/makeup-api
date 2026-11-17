@@ -1,8 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
-using Domain.Entities.Product;
-
-public class ProductVariantsSeedModel
+﻿public class ProductVariantSeedModel
 {
     public string? ImageUrl { get; set; }
 

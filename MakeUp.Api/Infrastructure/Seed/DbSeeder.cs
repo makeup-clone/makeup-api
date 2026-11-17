@@ -31,6 +31,7 @@ public static class DbSeeder
         await SeedProductAttributesAsync(dbContext, logger);
         await SeedAttributeValuesAsync(dbContext, logger);
         await SeedProductAttributeValuesAsync(dbContext, logger);
+        await SeedProductVariantsAsync(dbContext, logger);
 
         // Тут у майбутньому можна БАЖАНО додати інші сідери
     }
@@ -409,6 +410,48 @@ public static class DbSeeder
             };
 
             await dbContext.ProductAttributeValues.AddAsync(productAttributeValue);
+        }
+        await dbContext.SaveChangesAsync();
+    }
+
+    public static async Task SeedProductVariantsAsync(AppDbContext dbContext, ILogger logger)
+    {
+        var domainAssembly = typeof(DbSeeder).Assembly;
+        var jsonPath = "Infrastructure.Seed.Data.ProductVariants.json";
+        using var stream = domainAssembly.GetManifestResourceStream(jsonPath);
+        if (stream == null)
+        {
+            logger.LogError("Не вдалося знайти вбудований ресурс {JsonPath}. Перевірте назву шляху та Build Action файлу.", jsonPath);
+            return;
+        }
+        using var reader = new StreamReader(stream);
+        var json = await reader.ReadToEndAsync();
+
+        var productVariants = JsonSerializer.Deserialize<List<ProductVariantSeedModel>>(json);
+
+        if (productVariants == null || productVariants.Count == 0)
+        {
+            logger.LogError("Не вдалося отримати список варіантів продуктів. Список дорівнює null або являється пустим");
+            return;
+        }
+
+        foreach (var model in productVariants)
+        {
+            var existingValue = await dbContext.ProductVariants.FirstOrDefaultAsync(v => v.ProductId == model.ProductId && v.Sku == model.Sku);
+            if (existingValue != null)
+                continue;
+
+            var productVariant = new ProductVariantEntity
+            {
+                ProductId = model.ProductId,
+                Sku = model.Sku,
+                Volume = model.Volume,
+                Price = model.Price,
+                OldPrice = model.OldPrice,
+                Quantity = model.Quantity
+            };
+
+            await dbContext.ProductVariants.AddAsync(productVariant);
         }
         await dbContext.SaveChangesAsync();
     }
