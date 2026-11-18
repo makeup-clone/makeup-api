@@ -1,0 +1,20 @@
+[
+  {
+    "ProductId": 1,
+    "UserId": 2,
+    "Rating": 5,
+    "Text": "Чудовий продукт! Рекомендую.",
+    "LikesCount": 12,
+    "DislikesCount": 1,
+    "ParentId": null,
+    "Replies": [
+      {
+        "ProductId": 1,
+        "UserId": 1,
+        "Text": "Щиро дякуємо за відгук!",
+        "LikesCount": 3,
+        "DislikesCount": 0
+      }
+    ]
+  }
+]

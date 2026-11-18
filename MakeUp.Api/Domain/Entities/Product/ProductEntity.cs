@@ -17,6 +17,9 @@ public class ProductEntity : BaseEntity<long>
     public long BrandId { get; set; }
     public virtual BrandEntity Brand { get; set; } = null!;
 
+    public long CategoryId { get; set; }
+    public virtual CategoryEntity Category { get; set; } = null!;
+
     public virtual ICollection<ProductImageEntity> ProductImages { get; set; } = [];
     public virtual ICollection<ProductVariantEntity> Variants { get; set; } = [];
     public virtual ICollection<ReviewEntity> Reviews { get; set; } = [];

@@ -1,0 +1,102 @@
+[
+  {
+    "Name": "Вік",
+    "Slug": "age"
+  },
+  {
+    "Name": "Прем’єра ",
+    "Slug": "premiere"
+  },
+  {
+    "Name": "Серія",
+    "Slug": "series"
+  },
+  {
+    "Name": "Група товару",
+    "Slug": "product-group"
+  },
+  {
+    "Name": "Час застосування",
+    "Slug": "application-time"
+  },
+  {
+    "Name": "Призначення",
+    "Slug": "lengthening"
+  },
+  {
+    "Name": "Стать",
+    "Slug": "gender"
+  },
+  {
+    "Name": "Об'єм",
+    "Slug": "volume"
+  },
+  {
+    "Name": "Особливість",
+    "Slug": "feature"
+  },
+  {
+    "Name": "Ефект",
+    "Slug": "effect"
+  },
+  {
+    "Name": "Формула засобу",
+    "Slug": "formula"
+  },
+  {
+    "Name": "Форма",
+    "Slug": "form"
+  },
+  {
+    "Name": "Форма аксесуара",
+    "Slug": "accessory-form"
+  },
+  {
+    "Name": "Тип олівця",
+    "Slug": "pencil-type"
+  },
+  {
+    "Name": "Інгредієнти",
+    "Slug": "ingredients"
+  },
+  {
+    "Name": "Початкова нота",
+    "Slug": "initial-note"
+  },
+  {
+    "Name": "Нота серця",
+    "Slug": "heart-note"
+  },
+  {
+    "Name": "Кінцева нота",
+    "Slug": "final-note"
+  },
+  {
+    "Name": "Колекція",
+    "Slug": "collection"
+  },
+  {
+    "Name": "Класифікація",
+    "Slug": "classification"
+  },
+  {
+    "Name": "Країна ТМ",
+    "Slug": "country-tm"
+  },
+  {
+    "Name": "Зроблено в",
+    "Slug": "made-in"
+  },
+  {
+    "Name": "Доставимо з",
+    "Slug": "delivery-source"
+  },
+  {
+    "Name": "Призначення",
+    "Slug": "purpose"
+  },
+  {
+    "Name": "Тип шкіри",
+    "Slug": "skin-type"
+  }
+]

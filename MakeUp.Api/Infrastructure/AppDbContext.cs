@@ -27,6 +27,7 @@ public class AppDbContext : IdentityDbContext<
     public DbSet<BrandEntity> Brands { get; set; }
     public DbSet<ProductImageEntity> ProductImages { get; set; }
     public DbSet<ProductAttributeEntity> ProductAttributes { get; set; }
+    public DbSet<ProductAttributeValueEntity> ProductAttributeValues { get; set; }
     public DbSet<AttributeValueEntity> AttributeValues { get; set; }
     public DbSet<ProductVariantEntity> ProductVariants { get; set; }
     public DbSet<ReviewEntity> Reviews { get; set; }
@@ -135,6 +136,26 @@ public class AppDbContext : IdentityDbContext<
             av.HasOne(av => av.ProductAttribute)
                 .WithMany(pa => pa.Values)
                 .HasForeignKey(av => av.ProductAttributeId);
+        });
+
+        modelBuilder.Entity<CategoryEntity>(c =>
+        {
+            c.HasMany(c => c.Children)
+                .WithOne(c => c.Parent)
+                .HasForeignKey(c => c.ParentId);
+            c.HasMany(c => c.Products)
+                .WithOne(p => p.Category)
+                .HasForeignKey(p => p.CategoryId);
+        });
+
+        modelBuilder.Entity<ProductEntity>(p =>
+        {
+            p.HasOne(p => p.Brand)
+                .WithMany(b => b.Products)
+                .HasForeignKey(p => p.BrandId);
+            p.HasOne(p => p.Category)
+                .WithMany(c => c.Products)
+                .HasForeignKey(p => p.CategoryId);
         });
     }
 }
