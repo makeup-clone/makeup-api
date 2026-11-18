@@ -232,13 +232,18 @@ public static class DbSeeder
             return;
         }
 
+        var existingNames = new HashSet<string>(
+            await dbContext.Products.Select(b => b.Name).ToListAsync(),
+            StringComparer.OrdinalIgnoreCase
+        );
+        var newProducts = new List<ProductEntity>();
+
         foreach (var model in products)
         {
-            var existingProduct = await dbContext.Products.FirstOrDefaultAsync(p => p.Name == model.Name);
-            if (existingProduct != null)
+            if (existingNames.Contains(model.Name))
                 continue;
 
-            var product = new ProductEntity
+            newProducts.Add(new ProductEntity
             {
                 Name = model.Name,
                 UrlSlug = model.UrlSlug,
@@ -246,11 +251,15 @@ public static class DbSeeder
                 ReviewsCount = model.ReviewsCount,
                 BrandId = model.BrandId,
                 CategoryId = model.CategoryId
-            };
+            });
 
-            await dbContext.Products.AddAsync(product);
+            existingNames.Add(model.Name);
         }
-        await dbContext.SaveChangesAsync();
+        if (newProducts.Count > 0)
+        {
+            await dbContext.Products.AddRangeAsync(newProducts);
+            await dbContext.SaveChangesAsync();
+        }
     }
 
     public static async Task SeedReviewsAsync(AppDbContext dbContext, ILogger logger)
