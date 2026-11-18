@@ -87,10 +87,18 @@ public static class DbSeeder
             return;
         }
 
+        var existingEmails = new HashSet<string>(
+            await userManager.Users.Select(u => u.Email!).ToListAsync(),
+            StringComparer.OrdinalIgnoreCase
+        );
+
         foreach (var model in users)
         {
-            var existingUser = await userManager.FindByEmailAsync(model.Email);
-            if (existingUser != null)
+            //var existingUser = await userManager.FindByEmailAsync(model.Email);
+            //if (existingUser != null)
+            //    continue;
+
+            if (existingEmails.Contains(model.Email))
                 continue;
 
             var user = new UserEntity
@@ -99,7 +107,8 @@ public static class DbSeeder
                 Email = model.Email,
                 FirstName = model.FirstName,
                 LastName = model.LastName,
-                Image = model.Image
+                Image = model.Image,
+                EmailConfirmed = true
             };
 
             var result = await userManager.CreateAsync(user, model.Password);
@@ -117,6 +126,8 @@ public static class DbSeeder
                 var errors = string.Join(", ", result.Errors.Select(e => e.Description));
                 logger.LogError("Не вдалося додати ролі для користувача {Email}. Помилки: {Errors}", model.Email, errors);
             }
+
+            existingEmails.Add(model.Email);
         }
     }
 
@@ -148,7 +159,6 @@ public static class DbSeeder
         {
             await dbContext.Categories.AddRangeAsync(newCategories);
             await dbContext.SaveChangesAsync();
-            logger.LogInformation("Додано нових категорій: {Count}", newCategories.Count);
         }
     }
 
