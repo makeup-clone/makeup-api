@@ -272,34 +272,54 @@ public static class DbSeeder
             return;
         }
 
+        var existingReviewKeys = new HashSet<string>(
+            await dbContext.Reviews
+                .Select(r => $"{r.UserId}_{r.ProductId}")
+                .ToListAsync()
+        );
+        var newReviews = new List<ReviewEntity>();
+
         foreach (var model in reviews)
-            await AddReviewAsync(model, dbContext);
-    }
-
-    public static async Task AddReviewAsync(ReviewSeedModel reviewSeedModel, AppDbContext dbContext, long? parentId = null)
-    {
-        var review = await dbContext.Reviews
-                .FirstOrDefaultAsync(x => x.UserId == reviewSeedModel.UserId && x.ProductId == reviewSeedModel.ProductId);
-
-        if (review == null)
         {
-            review = new ReviewEntity
-            {
-                UserId = reviewSeedModel.UserId,
-                ProductId = reviewSeedModel.ProductId,
-                Rating = reviewSeedModel.Rating,
-                Text = reviewSeedModel.Text,
-                LikesCount = reviewSeedModel.LikesCount,
-                DislikesCount = reviewSeedModel.DislikesCount,
-                ParentId = reviewSeedModel.ParentId
-            };
-
-            await dbContext.Reviews.AddAsync(review);
-            await dbContext.SaveChangesAsync();
+            ExtractNewReviewsRecursive(model, parentEntity: null, existingReviewKeys, newReviews);
         }
 
-        foreach (var child in reviewSeedModel.Replies)
-            await AddReviewAsync(child, dbContext, child.ParentId);
+        if (newReviews.Count > 0)
+        {
+            await dbContext.Reviews.AddRangeAsync(newReviews);
+            await dbContext.SaveChangesAsync();
+        }
+    }
+
+    private static void ExtractNewReviewsRecursive(
+        ReviewSeedModel model,
+        ReviewEntity? parentEntity,
+        HashSet<string> existingReviewKeys,
+        List<ReviewEntity> newReviews)
+    {
+        string uniqueKey = $"{model.UserId}_{model.ProductId}";
+
+        if (existingReviewKeys.Contains(uniqueKey))
+            return;
+
+        var review = new ReviewEntity
+        {
+            UserId = model.UserId,
+            ProductId = model.ProductId,
+            Rating = model.Rating,
+            Text = model.Text,
+            LikesCount = model.LikesCount,
+            DislikesCount = model.DislikesCount,
+            Parent = parentEntity
+        };
+
+        newReviews.Add(review);
+        existingReviewKeys.Add(uniqueKey);
+
+        foreach (var reply in model.Replies)
+        {
+            ExtractNewReviewsRecursive(reply, review, existingReviewKeys, newReviews);
+        }
     }
 
     public static async Task SeedProductAttributesAsync(AppDbContext dbContext, ILogger logger)
