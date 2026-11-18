@@ -405,21 +405,30 @@ public static class DbSeeder
             return;
         }
 
+        var existingKeys = new HashSet<string>(
+            await dbContext.ProductAttributeValues.Select(v => $"{v.ProductId}_{v.AttributeValueId}").ToListAsync()
+        );
+        var newProductAttributeValues = new List<ProductAttributeValueEntity>();
+
         foreach (var model in productAttributeValues)
         {
-            var existingValue = await dbContext.ProductAttributeValues.FirstOrDefaultAsync(v => v.ProductId == model.ProductId && v.AttributeValueId == model.AttributeValueId);
-            if (existingValue != null)
+            string uniqueKey = $"{model.ProductId}_{model.AttributeValueId}";
+            if (existingKeys.Contains(uniqueKey))
                 continue;
 
-            var productAttributeValue = new ProductAttributeValueEntity
+            newProductAttributeValues.Add(new ProductAttributeValueEntity
             {
                 ProductId = model.ProductId,
                 AttributeValueId = model.AttributeValueId,
-            };
+            });
 
-            await dbContext.ProductAttributeValues.AddAsync(productAttributeValue);
+            existingKeys.Add(uniqueKey);
         }
-        await dbContext.SaveChangesAsync();
+        if (newProductAttributeValues.Count > 0)
+        {
+            await dbContext.ProductAttributeValues.AddRangeAsync(newProductAttributeValues);
+            await dbContext.SaveChangesAsync();
+        }
     }
 
     public static async Task SeedProductVariantsAsync(AppDbContext dbContext, ILogger logger)
