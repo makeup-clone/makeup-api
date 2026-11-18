@@ -32,8 +32,6 @@ public static class DbSeeder
         await SeedAttributeValuesAsync(dbContext, logger);
         await SeedProductAttributeValuesAsync(dbContext, logger);
         await SeedProductVariantsAsync(dbContext, logger);
-
-        // Тут у майбутньому можна БАЖАНО додати інші сідери
     }
 
     public static async Task SeedRolesAsync(RoleManager<RoleEntity> roleManager, ILogger logger)
@@ -121,7 +119,6 @@ public static class DbSeeder
             }
         }
     }
-  
 
     public static async Task SeedCategoriesAsync(AppDbContext dbContext, ILogger logger)
     {
@@ -133,33 +130,55 @@ public static class DbSeeder
             return;
         }
 
+        // Отримуємо всі існуючі UrlSlug з бази в HashSet 
+        //Використовуємо HashSet для швидкого пошуку за O(1)
+        var existingSlugs = new HashSet<string>(
+            await dbContext.Categories.Select(c => c.UrlSlug).ToListAsync(),
+            StringComparer.OrdinalIgnoreCase
+        );
+
+        var newCategories = new List<CategoryEntity>();
+
         foreach (var model in categories)
-            await AddCategoryAsync(model, dbContext, null);
-    }
-
-    public static async Task AddCategoryAsync(CategorySeedModel categorySeedModel, AppDbContext dbContext, long? parentId)
-    {
-        var category = await dbContext.Categories
-                .FirstOrDefaultAsync(x => x.UrlSlug == categorySeedModel.UrlSlug);
-
-        if (category == null)
         {
-            category = new CategoryEntity
-            {
-                Name = categorySeedModel.Name,
-                UrlSlug = categorySeedModel.UrlSlug,
-                Priority = categorySeedModel.Priority,
-                Image = categorySeedModel.Image,
-                Description = categorySeedModel.Description,
-                ParentId = parentId
-            };
-
-            await dbContext.Categories.AddAsync(category);
-            await dbContext.SaveChangesAsync();
+            ExtractNewCategoriesRecursive(model, null, existingSlugs, newCategories);
         }
 
-        foreach (var child in categorySeedModel.Children)
-            await AddCategoryAsync(child, dbContext, category.Id);
+        if (newCategories.Count > 0)
+        {
+            await dbContext.Categories.AddRangeAsync(newCategories);
+            await dbContext.SaveChangesAsync();
+            logger.LogInformation("Додано нових категорій: {Count}", newCategories.Count);
+        }
+    }
+
+    private static void ExtractNewCategoriesRecursive(
+        CategorySeedModel model,
+        CategoryEntity? parentEntity,
+        HashSet<string> existingSlugs,
+        List<CategoryEntity> newCategories)
+    {
+        // Якщо така категорія вже є в базі, ми її пропускаємо (або можна оновлювати, але зазвичай сідер просто пропускає)
+        if (existingSlugs.Contains(model.UrlSlug))
+            return;
+
+        var category = new CategoryEntity
+        {
+            Name = model.Name,
+            UrlSlug = model.UrlSlug,
+            Priority = model.Priority,
+            Image = model.Image,
+            Description = model.Description,
+            Parent = parentEntity
+        };
+
+        newCategories.Add(category);
+        existingSlugs.Add(model.UrlSlug); // Додаємо, щоб уникнути дублікатів усередині самого JSON
+
+        foreach (var child in model.Children)
+        {
+            ExtractNewCategoriesRecursive(child, category, existingSlugs, newCategories);
+        }
     }
 
     public static async Task SeedBrandsAsync(AppDbContext dbContext, ILogger logger)
