@@ -441,13 +441,19 @@ public static class DbSeeder
             return;
         }
 
+        var existingKeys = new HashSet<string>(
+            await dbContext.ProductVariants.Select(v => $"{v.ProductId}_{v.Sku}").ToListAsync(),
+            StringComparer.OrdinalIgnoreCase
+        );
+        var newProductVariants = new List<ProductVariantEntity>();
+
         foreach (var model in productVariants)
         {
-            var existingValue = await dbContext.ProductVariants.FirstOrDefaultAsync(v => v.ProductId == model.ProductId && v.Sku == model.Sku);
-            if (existingValue != null)
+            string uniqueKey = $"{model.ProductId}_{model.Sku}";
+            if (existingKeys.Contains(uniqueKey))
                 continue;
 
-            var productVariant = new ProductVariantEntity
+            newProductVariants.Add(new ProductVariantEntity
             {
                 ProductId = model.ProductId,
                 Sku = model.Sku,
@@ -455,10 +461,14 @@ public static class DbSeeder
                 Price = model.Price,
                 OldPrice = model.OldPrice,
                 Quantity = model.Quantity
-            };
+            });
 
-            await dbContext.ProductVariants.AddAsync(productVariant);
+            existingKeys.Add(uniqueKey);
         }
-        await dbContext.SaveChangesAsync();
+        if (newProductVariants.Count > 0)
+        {
+            await dbContext.ProductVariants.AddRangeAsync(newProductVariants);
+            await dbContext.SaveChangesAsync();
+        }
     }
 }
