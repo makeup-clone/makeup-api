@@ -368,21 +368,31 @@ public static class DbSeeder
             return;
         }
 
+        var existingKeys = new HashSet<string>(
+            await dbContext.AttributeValues.Select(v => $"{v.ProductAttributeId}_{v.Value}").ToListAsync(),
+            StringComparer.OrdinalIgnoreCase
+        );
+        var newAttributeValues = new List<AttributeValueEntity>();
+
         foreach (var model in attributeValues)
         {
-            var existingValue = await dbContext.AttributeValues.FirstOrDefaultAsync(v => v.ProductAttributeId == model.ProductAttributeId && v.Value == model.Value);
-            if (existingValue != null)
+            string uniqueKey = $"{model.ProductAttributeId}_{model.Value}";
+            if (existingKeys.Contains(uniqueKey))
                 continue;
 
-            var attributeValue = new AttributeValueEntity
+            newAttributeValues.Add(new AttributeValueEntity
             {
                 ProductAttributeId = model.ProductAttributeId,
-                Value = model.Value,
-            };
+                Value = model.Value
+            });
 
-            await dbContext.AttributeValues.AddAsync(attributeValue);
+            existingKeys.Add(uniqueKey);
         }
-        await dbContext.SaveChangesAsync();
+        if (newAttributeValues.Count > 0)
+        {
+            await dbContext.AttributeValues.AddRangeAsync(newAttributeValues);
+            await dbContext.SaveChangesAsync();
+        }
     }
 
     public static async Task SeedProductAttributeValuesAsync(AppDbContext dbContext, ILogger logger)
