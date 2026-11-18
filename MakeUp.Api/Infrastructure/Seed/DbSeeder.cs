@@ -94,10 +94,6 @@ public static class DbSeeder
 
         foreach (var model in users)
         {
-            //var existingUser = await userManager.FindByEmailAsync(model.Email);
-            //if (existingUser != null)
-            //    continue;
-
             if (existingEmails.Contains(model.Email))
                 continue;
 
@@ -201,20 +197,29 @@ public static class DbSeeder
             return;
         }
 
+        var existingNames = new HashSet<string>(
+            await dbContext.Brands.Select(b => b.Name).ToListAsync(),
+            StringComparer.OrdinalIgnoreCase
+        );
+        var newBrands = new List<BrandEntity>();
+
         foreach (var model in brands)
         {
-            var existingBrand = await dbContext.Brands.FirstOrDefaultAsync(b => b.Name == model.Name);
-            if (existingBrand != null)
+            if (existingNames.Contains(model.Name))
                 continue;
 
-            var brand = new BrandEntity
+            newBrands.Add(new BrandEntity
             {
                 Name = model.Name
-            };
+            });
 
-            await dbContext.Brands.AddAsync(brand);
+            existingNames.Add(model.Name);
         }
-        await dbContext.SaveChangesAsync();
+        if (newBrands.Count > 0)
+        {
+            await dbContext.Brands.AddRangeAsync(newBrands);
+            await dbContext.SaveChangesAsync();
+        }
     }
 
     public static async Task SeedProductsAsync(AppDbContext dbContext, ILogger logger)
