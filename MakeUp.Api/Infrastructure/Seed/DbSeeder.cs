@@ -332,21 +332,30 @@ public static class DbSeeder
             return;
         }
 
+        var existingNames = new HashSet<string>(
+            await dbContext.ProductAttributes.Select(p => p.Name).ToListAsync(),
+            StringComparer.OrdinalIgnoreCase
+        );
+        var newProductAttributes = new List<ProductAttributeEntity>();
+
         foreach (var model in productAttributes)
         {
-            var existingProduct = await dbContext.ProductAttributes.FirstOrDefaultAsync(p => p.Name == model.Name);
-            if (existingProduct != null)
+            if (existingNames.Contains(model.Name))
                 continue;
 
-            var productAttribute = new ProductAttributeEntity
+            newProductAttributes.Add(new ProductAttributeEntity
             {
                 Name = model.Name,
                 Slug = model.Slug,
-            };
+            });
 
-            await dbContext.ProductAttributes.AddAsync(productAttribute);
+            existingNames.Add(model.Name);
         }
-        await dbContext.SaveChangesAsync();
+        if (newProductAttributes.Count > 0)
+        {
+            await dbContext.ProductAttributes.AddRangeAsync(newProductAttributes);
+            await dbContext.SaveChangesAsync();
+        }
     }
 
     public static async Task SeedAttributeValuesAsync(AppDbContext dbContext, ILogger logger)
