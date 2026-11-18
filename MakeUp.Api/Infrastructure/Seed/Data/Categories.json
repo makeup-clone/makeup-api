@@ -1,66 +1,496 @@
 [
   {
-    "name": "Парфумерія",
-    "urlSlug": "perfumery",
-    "priority": 1,
-    "children": [
+    "Name": "Парфумерія",
+    "UrlSlug": "perfumery",
+    "Priority": 1,
+    "Children": [
       {
-        "name": "Жіноча парфумерія",
-        "urlSlug": "women-perfume",
-        "priority": 1
+        "Name": "Жіноча парфумерія",
+        "UrlSlug": "women-perfume",
+        "Priority": 1,
+        "Children": []
       },
       {
-        "name": "Чоловіча парфумерія",
-        "urlSlug": "men-perfume",
-        "priority": 2
+        "Name": "Чоловіча парфумерія",
+        "UrlSlug": "men-perfume",
+        "Priority": 2,
+        "Children": []
       },
       {
-        "name": "Парфумерія унісекс",
-        "urlSlug": "unisex-perfume",
-        "priority": 3
+        "Name": "Парфумерія унісекс",
+        "UrlSlug": "unisex-perfume",
+        "Priority": 3,
+        "Children": []
+      },
+      {
+        "Name": "Дитяча парфумерія",
+        "UrlSlug": "Children-perfume",
+        "Priority": 4,
+        "Children": []
+      },
+      {
+        "Name": "Парфумована вода",
+        "UrlSlug": "eau-de-parfum",
+        "Priority": 5,
+        "Children": []
+      },
+      {
+        "Name": "Туалетна вода",
+        "UrlSlug": "eau-de-toilette",
+        "Priority": 6,
+        "Children": []
+      },
+      {
+        "Name": "Одеколон",
+        "UrlSlug": "eau-de-cologne",
+        "Priority": 7,
+        "Children": []
+      },
+      {
+        "Name": "Мас-маркет",
+        "UrlSlug": "mass-market",
+        "Priority": 8,
+        "Children": []
+      },
+      {
+        "Name": "Елітна парфумерія",
+        "UrlSlug": "luxury-perfume",
+        "Priority": 9,
+        "Children": []
+      },
+      {
+        "Name": "Нішева парфумерія",
+        "UrlSlug": "niche-perfume",
+        "Priority": 10,
+        "Children": []
       }
     ]
   },
-
   {
-    "name": "Макіяж",
-    "urlSlug": "makeup",
-    "priority": 2,
-    "children": []
+    "Name": "Макіяж",
+    "UrlSlug": "makeup",
+    "Priority": 2,
+    "Children": [
+      {
+        "Name": "Брови",
+        "UrlSlug": "eyebrows",
+        "Priority": 1,
+        "Children": [
+          {
+            "Name": "Гель, віск та мило для брів",
+            "UrlSlug": "eyebrow-gel-wax-soap",
+            "Priority": 1,
+            "Children": []
+          },
+          {
+            "Name": "Олівці та тіні для брів",
+            "UrlSlug": "eyebrow-pencils-shadows",
+            "Priority": 2,
+            "Children": []
+          },
+          {
+            "Name": "Маркери та лайнери",
+            "UrlSlug": "eyebrow-markers-eyeliners",
+            "Priority": 3,
+            "Children": []
+          },
+          {
+            "Name": "Фарба для брів",
+            "UrlSlug": "eyebrow-dye",
+            "Priority": 4,
+            "Children": []
+          }
+        ]
+      },
+      {
+        "Name": "Очі",
+        "UrlSlug": "eyes",
+        "Priority": 2,
+        "Children": [
+          {
+            "Name": "Туш для вій",
+            "UrlSlug": "mascara",
+            "Priority": 1,
+            "Children": []
+          },
+          {
+            "Name": "Олівці та підводки",
+            "UrlSlug": "eyeliner-pencils",
+            "Priority": 2,
+            "Children": []
+          },
+          {
+            "Name": "Тіні для повік",
+            "UrlSlug": "eyeshadows",
+            "Priority": 3,
+            "Children": []
+          },
+          {
+            "Name": "Основа для тіней",
+            "UrlSlug": "eyeshadow-primer",
+            "Priority": 4,
+            "Children": []
+          }
+        ]
+      },
+      {
+        "Name": "Губи",
+        "UrlSlug": "lips",
+        "Priority": 3,
+        "Children": [
+          {
+            "Name": "Помада",
+            "UrlSlug": "lipstick",
+            "Priority": 1,
+            "Children": []
+          },
+          {
+            "Name": "Блиск для губ",
+            "UrlSlug": "lip-gloss",
+            "Priority": 2,
+            "Children": []
+          },
+          {
+            "Name": "Олівці для губ",
+            "UrlSlug": "lip-pencils",
+            "Priority": 3,
+            "Children": []
+          },
+          {
+            "Name": "Тінт для губ",
+            "UrlSlug": "lip-tint",
+            "Priority": 4,
+            "Children": []
+          },
+          {
+            "Name": "Бальзам та маска для губ",
+            "UrlSlug": "lip-balm-mask",
+            "Priority": 5,
+            "Children": []
+          }
+        ]
+      },
+      {
+        "Name": "Нігті",
+        "UrlSlug": "nails",
+        "Priority": 4,
+        "Children": [
+          {
+            "Name": "Лак для нігтів",
+            "UrlSlug": "nail-polish",
+            "Priority": 1,
+            "Children": []
+          }
+        ]
+      }
+    ]
   },
-
   {
-    "name": "Обличчя",
-    "urlSlug": "face",
-    "priority": 3,
-    "children": []
+    "Name": "Волосся",
+    "UrlSlug": "hair",
+    "Priority": 3,
+    "Children": [
+      {
+        "Name": "Шампунь",
+        "UrlSlug": "shampoo",
+        "Priority": 1,
+        "Children": []
+      },
+      {
+        "Name": "Кондиціонер",
+        "UrlSlug": "conditioner",
+        "Priority": 2,
+        "Children": []
+      },
+      {
+        "Name": "Бальзам",
+        "UrlSlug": "balm",
+        "Priority": 3,
+        "Children": []
+      },
+      {
+        "Name": "Маска",
+        "UrlSlug": "hair-mask",
+        "Priority": 4,
+        "Children": []
+      },
+      {
+        "Name": "Спрей для волосся",
+        "UrlSlug": "hair-spray",
+        "Priority": 5,
+        "Children": []
+      },
+      {
+        "Name": "Олійка для волосся",
+        "UrlSlug": "hair-oil",
+        "Priority": 6,
+        "Children": []
+      },
+      {
+        "Name": "Сироватки для волосся",
+        "UrlSlug": "hair-serums",
+        "Priority": 7,
+        "Children": []
+      },
+      {
+        "Name": "Фарбування",
+        "UrlSlug": "hair-coloring",
+        "Priority": 8,
+        "Children": []
+      },
+      {
+        "Name": "Стайлінг",
+        "UrlSlug": "hair-styling",
+        "Priority": 9,
+        "Children": []
+      },
+      {
+        "Name": "Для дітей",
+        "UrlSlug": "for-kids",
+        "Priority": 10,
+        "Children": []
+      }
+    ]
   },
-
   {
-    "name": "Волосся",
-    "urlSlug": "hair",
-    "priority": 4,
-    "children": []
+    "Name": "Тіло",
+    "UrlSlug": "body",
+    "Priority": 4,
+    "Children": [
+      {
+        "Name": "Для ванни та душу",
+        "UrlSlug": "bath-and-shower",
+        "Priority": 1,
+        "Children": []
+      },
+      {
+        "Name": "Гігієна та захист",
+        "UrlSlug": "hygiene-and-protection",
+        "Priority": 2,
+        "Children": []
+      },
+      {
+        "Name": "Дезодоранти, антиперспіранти",
+        "UrlSlug": "deodorants-antiperspirants",
+        "Priority": 3,
+        "Children": []
+      },
+      {
+        "Name": "Косметика для тіла",
+        "UrlSlug": "body-cosmetics",
+        "Priority": 4,
+        "Children": []
+      },
+      {
+        "Name": "Косметика для рук",
+        "UrlSlug": "hand-cosmetics",
+        "Priority": 5,
+        "Children": []
+      },
+      {
+        "Name": "Косметика для ніг",
+        "UrlSlug": "foot-cosmetics",
+        "Priority": 6,
+        "Children": []
+      },
+      {
+        "Name": "Засоби для засмаги",
+        "UrlSlug": "tanning-products",
+        "Priority": 7,
+        "Children": []
+      },
+      {
+        "Name": "Захист від сонця (SPF)",
+        "UrlSlug": "sun-protection-spf",
+        "Priority": 8,
+        "Children": []
+      }
+    ]
   },
-
   {
-    "name": "Тіло",
-    "urlSlug": "body",
-    "priority": 5,
-    "children": []
+    "Name": "Обличчя",
+    "UrlSlug": "face",
+    "Priority": 5,
+    "Children": [
+      {
+        "Name": "Пінки та гелі для вмивання",
+        "UrlSlug": "cleansing-foams-gels",
+        "Priority": 1,
+        "Children": []
+      },
+      {
+        "Name": "Креми для обличчя",
+        "UrlSlug": "face-creams",
+        "Priority": 2,
+        "Children": []
+      },
+      {
+        "Name": "Маски для обличчя",
+        "UrlSlug": "face-masks",
+        "Priority": 3,
+        "Children": []
+      },
+      {
+        "Name": "Сироватки для обличчя",
+        "UrlSlug": "face-serums",
+        "Priority": 4,
+        "Children": []
+      },
+      {
+        "Name": "Флюїди для обличчя",
+        "UrlSlug": "face-fluids",
+        "Priority": 5,
+        "Children": []
+      },
+      {
+        "Name": "Спреї для обличчя",
+        "UrlSlug": "face-sprays",
+        "Priority": 6,
+        "Children": []
+      },
+      {
+        "Name": "Тонізуючі засоби",
+        "UrlSlug": "toners",
+        "Priority": 7,
+        "Children": []
+      },
+      {
+        "Name": "Матуючі засоби",
+        "UrlSlug": "mattifying-products",
+        "Priority": 8,
+        "Children": []
+      },
+      {
+        "Name": "Антивікові засоби",
+        "UrlSlug": "anti-aging",
+        "Priority": 9,
+        "Children": []
+      },
+      {
+        "Name": "Засоби для зняття макіяжу",
+        "UrlSlug": "makeup-removers",
+        "Priority": 10,
+        "Children": []
+      },
+      {
+        "Name": "Захист від сонця (SPF)",
+        "UrlSlug": "sun-protection-spf",
+        "Priority": 11,
+        "Children": []
+      }
+    ]
   },
-
   {
-    "name": "Здоров'я і догляд",
-    "urlSlug": "health-and-care",
-    "priority": 6,
-    "children": []
-  },
-
-  {
-    "name": "Аксесуари і техніка",
-    "urlSlug": "accessories-and-technique",
-    "priority": 7,
-    "children": []
+    "Name": "Аксесуари",
+    "UrlSlug": "accessories",
+    "Priority": 6,
+    "Children": [
+      {
+        "Name": "Для волосся",
+        "UrlSlug": "for-hair",
+        "Priority": 1,
+        "Children": [
+          {
+            "Name": "Гребінець",
+            "UrlSlug": "comb",
+            "Priority": 1,
+            "Children": []
+          },
+          {
+            "Name": "Шпилька",
+            "UrlSlug": "hairpin",
+            "Priority": 2,
+            "Children": []
+          },
+          {
+            "Name": "Обруч",
+            "UrlSlug": "headband",
+            "Priority": 3,
+            "Children": []
+          },
+          {
+            "Name": "Заколки",
+            "UrlSlug": "hair-clips",
+            "Priority": 4,
+            "Children": []
+          },
+          {
+            "Name": "Заколки-крабики",
+            "UrlSlug": "claw-clips",
+            "Priority": 5,
+            "Children": []
+          }
+        ]
+      },
+      {
+        "Name": "Для макіяжу",
+        "UrlSlug": "for-makeup",
+        "Priority": 2,
+        "Children": [
+          {
+            "Name": "Пензлик для макіяжу",
+            "UrlSlug": "makeup-brush",
+            "Priority": 1,
+            "Children": []
+          },
+          {
+            "Name": "Спонж для макіяжу",
+            "UrlSlug": "makeup-sponge",
+            "Priority": 2,
+            "Children": []
+          },
+          {
+            "Name": "Косметичне дзеркало",
+            "UrlSlug": "cosmetic-mirror",
+            "Priority": 3,
+            "Children": []
+          },
+          {
+            "Name": "Аксесуари для брів та вій",
+            "UrlSlug": "eyebrow-and-eyelash-accessories",
+            "Priority": 4,
+            "Children": []
+          }
+        ]
+      },
+      {
+        "Name": "Гігієна та догляд",
+        "UrlSlug": "hygiene-and-care",
+        "Priority": 3,
+        "Children": [
+          {
+            "Name": "Аксесуари для ванни",
+            "UrlSlug": "bath-accessories",
+            "Priority": 1,
+            "Children": []
+          },
+          {
+            "Name": "Манікюр та педикюр",
+            "UrlSlug": "manicure-and-pedicure",
+            "Priority": 2,
+            "Children": []
+          }
+        ]
+      },
+      {
+        "Name": "Аксесуари",
+        "UrlSlug": "accessories-sub",
+        "Priority": 4,
+        "Children": [
+          {
+            "Name": "Косметичка",
+            "UrlSlug": "cosmetic-bag",
+            "Priority": 1,
+            "Children": []
+          },
+          {
+            "Name": "Органайзер",
+            "UrlSlug": "organizer",
+            "Priority": 2,
+            "Children": []
+          }
+        ]
+      }
+    ]
   }
 ]
