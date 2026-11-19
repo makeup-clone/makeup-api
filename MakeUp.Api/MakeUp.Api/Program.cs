@@ -4,6 +4,7 @@ using Application.Models;
 using Application.Services;
 using Domain.Constants;
 using Domain.Entities.Identity;
+using FluentValidation;
 using Infrastructure;
 using Infrastructure.Seed;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -29,6 +30,8 @@ builder.Services.AddScoped<ICategoryService, CategoryService>();
 
 builder.Services.AddSingleton<CategoryMapper>();
 builder.Services.AddSingleton<UserMapper>();
+
+builder.Services.AddValidatorsFromAssemblyContaining<Program>();
 
 builder.Services.AddIdentity<UserEntity, RoleEntity>(options =>
 {
