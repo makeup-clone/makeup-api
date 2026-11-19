@@ -5,12 +5,12 @@ public class LoginModel
     /// <summary>
     /// Електронна пошта користувача
     /// </summary>
-    /// <example>user1@example.com</example>
+    /// <example>user@gmail.com</example>
     public string Email { get; set; } = string.Empty;
 
     /// <summary>
     /// Пароль користувача
     /// </summary>
-    /// <example>123456</example>
+    /// <example>User123</example>
     public string Password { get; set; } = string.Empty;
 }

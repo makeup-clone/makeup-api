@@ -21,7 +21,7 @@ public class CategoryEntity : BaseEntity<long>
 
     [ForeignKey("Parent")]
     public long? ParentId { get; set; }
-    public virtual CategoryEntity Parent { get; set; } = null!;
+    public virtual CategoryEntity? Parent { get; set; } = null;
     public virtual ICollection<CategoryEntity> Children { get; set; } = [];
     public virtual ICollection<ProductEntity> Products { get; set; } = [];
 }

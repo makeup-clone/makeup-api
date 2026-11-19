@@ -32,8 +32,6 @@ public static class DbSeeder
         await SeedAttributeValuesAsync(dbContext, logger);
         await SeedProductAttributeValuesAsync(dbContext, logger);
         await SeedProductVariantsAsync(dbContext, logger);
-
-        // Тут у майбутньому можна БАЖАНО додати інші сідери
     }
 
     public static async Task SeedRolesAsync(RoleManager<RoleEntity> roleManager, ILogger logger)
@@ -89,10 +87,14 @@ public static class DbSeeder
             return;
         }
 
+        var existingEmails = new HashSet<string>(
+            await userManager.Users.Select(u => u.Email!).ToListAsync(),
+            StringComparer.OrdinalIgnoreCase
+        );
+
         foreach (var model in users)
         {
-            var existingUser = await userManager.FindByEmailAsync(model.Email);
-            if (existingUser != null)
+            if (existingEmails.Contains(model.Email))
                 continue;
 
             var user = new UserEntity
@@ -101,7 +103,8 @@ public static class DbSeeder
                 Email = model.Email,
                 FirstName = model.FirstName,
                 LastName = model.LastName,
-                Image = model.Image
+                Image = model.Image,
+                EmailConfirmed = true
             };
 
             var result = await userManager.CreateAsync(user, model.Password);
@@ -119,9 +122,10 @@ public static class DbSeeder
                 var errors = string.Join(", ", result.Errors.Select(e => e.Description));
                 logger.LogError("Не вдалося додати ролі для користувача {Email}. Помилки: {Errors}", model.Email, errors);
             }
+
+            existingEmails.Add(model.Email);
         }
     }
-  
 
     public static async Task SeedCategoriesAsync(AppDbContext dbContext, ILogger logger)
     {
@@ -133,33 +137,54 @@ public static class DbSeeder
             return;
         }
 
+        // Отримуємо всі існуючі UrlSlug з бази в HashSet 
+        //Використовуємо HashSet для швидкого пошуку за O(1)
+        var existingSlugs = new HashSet<string>(
+            await dbContext.Categories.Select(c => c.UrlSlug).ToListAsync(),
+            StringComparer.OrdinalIgnoreCase
+        );
+
+        var newCategories = new List<CategoryEntity>();
+
         foreach (var model in categories)
-            await AddCategoryAsync(model, dbContext, null);
-    }
-
-    public static async Task AddCategoryAsync(CategorySeedModel categorySeedModel, AppDbContext dbContext, long? parentId)
-    {
-        var category = await dbContext.Categories
-                .FirstOrDefaultAsync(x => x.UrlSlug == categorySeedModel.UrlSlug);
-
-        if (category == null)
         {
-            category = new CategoryEntity
-            {
-                Name = categorySeedModel.Name,
-                UrlSlug = categorySeedModel.UrlSlug,
-                Priority = categorySeedModel.Priority,
-                Image = categorySeedModel.Image,
-                Description = categorySeedModel.Description,
-                ParentId = parentId
-            };
-
-            await dbContext.Categories.AddAsync(category);
-            await dbContext.SaveChangesAsync();
+            ExtractNewCategoriesRecursive(model, null, existingSlugs, newCategories);
         }
 
-        foreach (var child in categorySeedModel.Children)
-            await AddCategoryAsync(child, dbContext, category.Id);
+        if (newCategories.Count > 0)
+        {
+            await dbContext.Categories.AddRangeAsync(newCategories);
+            await dbContext.SaveChangesAsync();
+        }
+    }
+
+    private static void ExtractNewCategoriesRecursive(
+        CategorySeedModel model,
+        CategoryEntity? parentEntity,
+        HashSet<string> existingSlugs,
+        List<CategoryEntity> newCategories)
+    {
+        // Якщо така категорія вже є в базі, ми її пропускаємо (або можна оновлювати, але зазвичай сідер просто пропускає)
+        if (existingSlugs.Contains(model.UrlSlug))
+            return;
+
+        var category = new CategoryEntity
+        {
+            Name = model.Name,
+            UrlSlug = model.UrlSlug,
+            Priority = model.Priority,
+            Image = model.Image,
+            Description = model.Description,
+            Parent = parentEntity
+        };
+
+        newCategories.Add(category);
+        existingSlugs.Add(model.UrlSlug); // Додаємо, щоб уникнути дублікатів усередині самого JSON
+
+        foreach (var child in model.Children)
+        {
+            ExtractNewCategoriesRecursive(child, category, existingSlugs, newCategories);
+        }
     }
 
     public static async Task SeedBrandsAsync(AppDbContext dbContext, ILogger logger)
@@ -172,20 +197,29 @@ public static class DbSeeder
             return;
         }
 
+        var existingNames = new HashSet<string>(
+            await dbContext.Brands.Select(b => b.Name).ToListAsync(),
+            StringComparer.OrdinalIgnoreCase
+        );
+        var newBrands = new List<BrandEntity>();
+
         foreach (var model in brands)
         {
-            var existingBrand = await dbContext.Brands.FirstOrDefaultAsync(b => b.Name == model.Name);
-            if (existingBrand != null)
+            if (existingNames.Contains(model.Name))
                 continue;
 
-            var brand = new BrandEntity
+            newBrands.Add(new BrandEntity
             {
                 Name = model.Name
-            };
+            });
 
-            await dbContext.Brands.AddAsync(brand);
+            existingNames.Add(model.Name);
         }
-        await dbContext.SaveChangesAsync();
+        if (newBrands.Count > 0)
+        {
+            await dbContext.Brands.AddRangeAsync(newBrands);
+            await dbContext.SaveChangesAsync();
+        }
     }
 
     public static async Task SeedProductsAsync(AppDbContext dbContext, ILogger logger)
@@ -198,13 +232,18 @@ public static class DbSeeder
             return;
         }
 
+        var existingNames = new HashSet<string>(
+            await dbContext.Products.Select(b => b.Name).ToListAsync(),
+            StringComparer.OrdinalIgnoreCase
+        );
+        var newProducts = new List<ProductEntity>();
+
         foreach (var model in products)
         {
-            var existingProduct = await dbContext.Products.FirstOrDefaultAsync(p => p.Name == model.Name);
-            if (existingProduct != null)
+            if (existingNames.Contains(model.Name))
                 continue;
 
-            var product = new ProductEntity
+            newProducts.Add(new ProductEntity
             {
                 Name = model.Name,
                 UrlSlug = model.UrlSlug,
@@ -212,11 +251,15 @@ public static class DbSeeder
                 ReviewsCount = model.ReviewsCount,
                 BrandId = model.BrandId,
                 CategoryId = model.CategoryId
-            };
+            });
 
-            await dbContext.Products.AddAsync(product);
+            existingNames.Add(model.Name);
         }
-        await dbContext.SaveChangesAsync();
+        if (newProducts.Count > 0)
+        {
+            await dbContext.Products.AddRangeAsync(newProducts);
+            await dbContext.SaveChangesAsync();
+        }
     }
 
     public static async Task SeedReviewsAsync(AppDbContext dbContext, ILogger logger)
@@ -229,34 +272,54 @@ public static class DbSeeder
             return;
         }
 
+        var existingReviewKeys = new HashSet<string>(
+            await dbContext.Reviews
+                .Select(r => $"{r.UserId}_{r.ProductId}")
+                .ToListAsync()
+        );
+        var newReviews = new List<ReviewEntity>();
+
         foreach (var model in reviews)
-            await AddReviewAsync(model, dbContext);
-    }
-
-    public static async Task AddReviewAsync(ReviewSeedModel reviewSeedModel, AppDbContext dbContext, long? parentId = null)
-    {
-        var review = await dbContext.Reviews
-                .FirstOrDefaultAsync(x => x.UserId == reviewSeedModel.UserId && x.ProductId == reviewSeedModel.ProductId);
-
-        if (review == null)
         {
-            review = new ReviewEntity
-            {
-                UserId = reviewSeedModel.UserId,
-                ProductId = reviewSeedModel.ProductId,
-                Rating = reviewSeedModel.Rating,
-                Text = reviewSeedModel.Text,
-                LikesCount = reviewSeedModel.LikesCount,
-                DislikesCount = reviewSeedModel.DislikesCount,
-                ParentId = reviewSeedModel.ParentId
-            };
-
-            await dbContext.Reviews.AddAsync(review);
-            await dbContext.SaveChangesAsync();
+            ExtractNewReviewsRecursive(model, parentEntity: null, existingReviewKeys, newReviews);
         }
 
-        foreach (var child in reviewSeedModel.Replies)
-            await AddReviewAsync(child, dbContext, child.ParentId);
+        if (newReviews.Count > 0)
+        {
+            await dbContext.Reviews.AddRangeAsync(newReviews);
+            await dbContext.SaveChangesAsync();
+        }
+    }
+
+    private static void ExtractNewReviewsRecursive(
+        ReviewSeedModel model,
+        ReviewEntity? parentEntity,
+        HashSet<string> existingReviewKeys,
+        List<ReviewEntity> newReviews)
+    {
+        string uniqueKey = $"{model.UserId}_{model.ProductId}";
+
+        if (existingReviewKeys.Contains(uniqueKey))
+            return;
+
+        var review = new ReviewEntity
+        {
+            UserId = model.UserId,
+            ProductId = model.ProductId,
+            Rating = model.Rating,
+            Text = model.Text,
+            LikesCount = model.LikesCount,
+            DislikesCount = model.DislikesCount,
+            Parent = parentEntity
+        };
+
+        newReviews.Add(review);
+        existingReviewKeys.Add(uniqueKey);
+
+        foreach (var reply in model.Replies)
+        {
+            ExtractNewReviewsRecursive(reply, review, existingReviewKeys, newReviews);
+        }
     }
 
     public static async Task SeedProductAttributesAsync(AppDbContext dbContext, ILogger logger)
@@ -269,21 +332,30 @@ public static class DbSeeder
             return;
         }
 
+        var existingNames = new HashSet<string>(
+            await dbContext.ProductAttributes.Select(p => p.Name).ToListAsync(),
+            StringComparer.OrdinalIgnoreCase
+        );
+        var newProductAttributes = new List<ProductAttributeEntity>();
+
         foreach (var model in productAttributes)
         {
-            var existingProduct = await dbContext.ProductAttributes.FirstOrDefaultAsync(p => p.Name == model.Name);
-            if (existingProduct != null)
+            if (existingNames.Contains(model.Name))
                 continue;
 
-            var productAttribute = new ProductAttributeEntity
+            newProductAttributes.Add(new ProductAttributeEntity
             {
                 Name = model.Name,
                 Slug = model.Slug,
-            };
+            });
 
-            await dbContext.ProductAttributes.AddAsync(productAttribute);
+            existingNames.Add(model.Name);
         }
-        await dbContext.SaveChangesAsync();
+        if (newProductAttributes.Count > 0)
+        {
+            await dbContext.ProductAttributes.AddRangeAsync(newProductAttributes);
+            await dbContext.SaveChangesAsync();
+        }
     }
 
     public static async Task SeedAttributeValuesAsync(AppDbContext dbContext, ILogger logger)
@@ -296,21 +368,31 @@ public static class DbSeeder
             return;
         }
 
+        var existingKeys = new HashSet<string>(
+            await dbContext.AttributeValues.Select(v => $"{v.ProductAttributeId}_{v.Value}").ToListAsync(),
+            StringComparer.OrdinalIgnoreCase
+        );
+        var newAttributeValues = new List<AttributeValueEntity>();
+
         foreach (var model in attributeValues)
         {
-            var existingValue = await dbContext.AttributeValues.FirstOrDefaultAsync(v => v.ProductAttributeId == model.ProductAttributeId && v.Value == model.Value);
-            if (existingValue != null)
+            string uniqueKey = $"{model.ProductAttributeId}_{model.Value}";
+            if (existingKeys.Contains(uniqueKey))
                 continue;
 
-            var attributeValue = new AttributeValueEntity
+            newAttributeValues.Add(new AttributeValueEntity
             {
                 ProductAttributeId = model.ProductAttributeId,
-                Value = model.Value,
-            };
+                Value = model.Value
+            });
 
-            await dbContext.AttributeValues.AddAsync(attributeValue);
+            existingKeys.Add(uniqueKey);
         }
-        await dbContext.SaveChangesAsync();
+        if (newAttributeValues.Count > 0)
+        {
+            await dbContext.AttributeValues.AddRangeAsync(newAttributeValues);
+            await dbContext.SaveChangesAsync();
+        }
     }
 
     public static async Task SeedProductAttributeValuesAsync(AppDbContext dbContext, ILogger logger)
@@ -323,21 +405,30 @@ public static class DbSeeder
             return;
         }
 
+        var existingKeys = new HashSet<string>(
+            await dbContext.ProductAttributeValues.Select(v => $"{v.ProductId}_{v.AttributeValueId}").ToListAsync()
+        );
+        var newProductAttributeValues = new List<ProductAttributeValueEntity>();
+
         foreach (var model in productAttributeValues)
         {
-            var existingValue = await dbContext.ProductAttributeValues.FirstOrDefaultAsync(v => v.ProductId == model.ProductId && v.AttributeValueId == model.AttributeValueId);
-            if (existingValue != null)
+            string uniqueKey = $"{model.ProductId}_{model.AttributeValueId}";
+            if (existingKeys.Contains(uniqueKey))
                 continue;
 
-            var productAttributeValue = new ProductAttributeValueEntity
+            newProductAttributeValues.Add(new ProductAttributeValueEntity
             {
                 ProductId = model.ProductId,
                 AttributeValueId = model.AttributeValueId,
-            };
+            });
 
-            await dbContext.ProductAttributeValues.AddAsync(productAttributeValue);
+            existingKeys.Add(uniqueKey);
         }
-        await dbContext.SaveChangesAsync();
+        if (newProductAttributeValues.Count > 0)
+        {
+            await dbContext.ProductAttributeValues.AddRangeAsync(newProductAttributeValues);
+            await dbContext.SaveChangesAsync();
+        }
     }
 
     public static async Task SeedProductVariantsAsync(AppDbContext dbContext, ILogger logger)
@@ -350,13 +441,19 @@ public static class DbSeeder
             return;
         }
 
+        var existingKeys = new HashSet<string>(
+            await dbContext.ProductVariants.Select(v => $"{v.ProductId}_{v.Sku}").ToListAsync(),
+            StringComparer.OrdinalIgnoreCase
+        );
+        var newProductVariants = new List<ProductVariantEntity>();
+
         foreach (var model in productVariants)
         {
-            var existingValue = await dbContext.ProductVariants.FirstOrDefaultAsync(v => v.ProductId == model.ProductId && v.Sku == model.Sku);
-            if (existingValue != null)
+            string uniqueKey = $"{model.ProductId}_{model.Sku}";
+            if (existingKeys.Contains(uniqueKey))
                 continue;
 
-            var productVariant = new ProductVariantEntity
+            newProductVariants.Add(new ProductVariantEntity
             {
                 ProductId = model.ProductId,
                 Sku = model.Sku,
@@ -364,10 +461,14 @@ public static class DbSeeder
                 Price = model.Price,
                 OldPrice = model.OldPrice,
                 Quantity = model.Quantity
-            };
+            });
 
-            await dbContext.ProductVariants.AddAsync(productVariant);
+            existingKeys.Add(uniqueKey);
         }
-        await dbContext.SaveChangesAsync();
+        if (newProductVariants.Count > 0)
+        {
+            await dbContext.ProductVariants.AddRangeAsync(newProductVariants);
+            await dbContext.SaveChangesAsync();
+        }
     }
 }

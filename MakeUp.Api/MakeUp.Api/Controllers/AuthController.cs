@@ -30,7 +30,6 @@ public class AuthController(IAuthService authService) : ControllerBase
             HttpOnly = true,
             Secure = false, // Має збігатися з параметром при встановленні
             SameSite = SameSiteMode.Strict,
-            Expires = DateTimeOffset.UtcNow.AddDays(-1)
         };
 
         Response.Cookies.Delete(CookieConstants.AccessTokenCookieName, cookieOptions);

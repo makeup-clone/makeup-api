@@ -4,6 +4,7 @@ using Application.Models;
 using Application.Services;
 using Domain.Constants;
 using Domain.Entities.Identity;
+using FluentValidation;
 using Infrastructure;
 using Infrastructure.Seed;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -11,6 +12,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.IdentityModel.Tokens;
+using System.Security.Claims;
 using System.Text;
 
 Console.OutputEncoding = Encoding.UTF8;
@@ -29,6 +31,8 @@ builder.Services.AddScoped<ICategoryService, CategoryService>();
 
 builder.Services.AddSingleton<CategoryMapper>();
 builder.Services.AddSingleton<UserMapper>();
+
+builder.Services.AddValidatorsFromAssemblyContaining<Program>();
 
 builder.Services.AddIdentity<UserEntity, RoleEntity>(options =>
 {
@@ -98,6 +102,35 @@ builder.Services.AddAuthentication(options =>
         {
             context.Token = context.Request.Cookies[CookieConstants.AccessTokenCookieName];
             return Task.CompletedTask;
+        },
+        OnTokenValidated = async context =>
+        {
+            var userId = context.Principal?.FindFirstValue("id")
+                         ?? context.Principal?.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            var cookieOptions = new CookieOptions
+            {
+                HttpOnly = true,
+                Secure = false, 
+                SameSite = SameSiteMode.Strict,
+            };
+
+            if (string.IsNullOrWhiteSpace(userId))
+            {
+                context.Response.Cookies.Delete(CookieConstants.AccessTokenCookieName, cookieOptions);
+                context.Fail("Invalid token claims.");
+                return;
+            }
+
+            var userManager = context.HttpContext.RequestServices
+                .GetRequiredService<UserManager<UserEntity>>();
+
+            var user = await userManager.FindByIdAsync(userId);
+            if (user is null)
+            {
+                context.Response.Cookies.Delete(CookieConstants.AccessTokenCookieName, cookieOptions);
+                context.Fail("User no longer exists.");
+            }
         }
     };
 });
