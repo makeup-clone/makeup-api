@@ -9,39 +9,16 @@ namespace MakeUp.Api.Controllers;
 
 [Route("api/[controller]/[action]")]
 [ApiController]
-public class AuthController(IAuthService authService) : ControllerBase
+public class AuthController(IAuthService authService, ICookieService cookieService) : ControllerBase
 {
-    private void SetTokenCookie(string token)
-    {
-        var cookieOptions = new CookieOptions
-        {
-            HttpOnly = true, // JavaScript у браузері НЕ має доступу до цієї куки (захист від XSS)
-            Secure = false, // Передається тільки через HTTPS (false для локальної розробки без HTTPS, якщо потрібно)
-            SameSite = SameSiteMode.Strict, // Захист від CSRF-атак (або Lax, якщо фронтенд і бекенд на різних субдоменах)
-            Expires = DateTimeOffset.UtcNow.AddDays(7) // Термін життя куки
-        };
-
-        Response.Cookies.Append(CookieConstants.AccessTokenCookieName, token, cookieOptions);
-    }
-    private void DeleteTokenCookie()
-    {
-        var cookieOptions = new CookieOptions
-        {
-            HttpOnly = true,
-            Secure = false, // Має збігатися з параметром при встановленні
-            SameSite = SameSiteMode.Strict,
-        };
-
-        Response.Cookies.Delete(CookieConstants.AccessTokenCookieName, cookieOptions);
-    }
-
+    
     [HttpPost]
     public async Task<IActionResult> Register([FromForm] RegisterModel model, CancellationToken cancellationToken)
     {
         try
         {
             var authResponse = await authService.RegisterAsync(model, cancellationToken);
-            SetTokenCookie(authResponse.AccessToken);
+            cookieService.SetTokenCookie(Response, authResponse.AccessToken, authResponse.RefreshToken, model.RememberMe);
             return Ok(new { message = "Реєстрація успішна" });
         }
         catch (Exception ex)
@@ -52,12 +29,12 @@ public class AuthController(IAuthService authService) : ControllerBase
     }
 
     [HttpPost]
-    public async Task<IActionResult> Login([FromBody] LoginModel model)
+    public async Task<IActionResult> Login([FromBody] LoginModel model, CancellationToken cancellationToken)
     {
         try
         {
-            var authResponse = await authService.LoginAsync(model);
-            SetTokenCookie(authResponse.AccessToken);
+            var authResponse = await authService.LoginAsync(model, cancellationToken);
+            cookieService.SetTokenCookie(Response, authResponse.AccessToken, authResponse.RefreshToken, model.RememberMe);
             return Ok(new { message = "Успішний вхід" });
         }
         catch (Exception ex)
@@ -67,40 +44,68 @@ public class AuthController(IAuthService authService) : ControllerBase
     }
 
     [HttpPost]
-    [Authorize]
-    public async Task<IActionResult> Logout()
+    public async Task<IActionResult> Logout(CancellationToken cancellationToken)
     {
-        DeleteTokenCookie();
-        return Ok(new { message = "Успішний вихід з системи" });
+        var refreshToken = Request.Cookies[CookieConstants.RefreshTokenCookieName];
+        await authService.LogoutAsync(refreshToken, cancellationToken);
+
+        cookieService.DeleteTokenCookie(Response);
+        return Ok(new { message = "Успішний вихід із системи" });
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> GoogleLogin([FromBody] GoogleLoginModel model, CancellationToken cancellationToken)
+    {
+        try
+        {
+            var authResponse = await authService.GoogleLoginAsync(model, cancellationToken);
+            cookieService.SetTokenCookie(Response, authResponse.AccessToken, authResponse.RefreshToken, model.RememberMe);
+            return Ok(new { message = "Успішний вхід через Google" });
+        }
+        catch (Exception ex)
+        {
+            return Unauthorized(new { message = ex.Message });
+        }
     }
 
     [HttpGet]
     [Authorize]
     public async Task<IActionResult> Profile()
     {
+        var providers = User.FindAll("providers")
+            .Select(c => c.Value)
+            .Where(v => !string.IsNullOrWhiteSpace(v))
+            .Distinct()
+            .ToArray();
+
         return Ok(new
         {
             id = User.FindFirstValue("id"),
-            email = User.FindFirstValue(ClaimTypes.Email),
+            email = User.FindFirstValue("email"),
             firstName = User.FindFirstValue("firstName"),
             lastName = User.FindFirstValue("lastName"),
             image = User.FindFirstValue("image"),
-            roles = User.FindAll(ClaimTypes.Role).Select(r => r.Value)
+            createdAt = User.FindFirstValue("createdAt"),
+            roles = User.FindAll(ClaimTypes.Role).Select(r => r.Value),
+            providers,
         });
     }
 
     [HttpPost]
-    public async Task<IActionResult> GoogleLogin([FromBody] GoogleLoginModel model)
+    public async Task<IActionResult> Refresh(CancellationToken cancellationToken)
     {
+        var refreshToken = Request.Cookies[CookieConstants.RefreshTokenCookieName];
+
         try
         {
-            var authResponse = await authService.GoogleLoginAsync(model);
-            SetTokenCookie(authResponse.AccessToken);
-            return Ok(new { message = "Успішний вхід через Google" });
+            var authResponse = await authService.RefreshTokenAsync(refreshToken, cancellationToken);
+            cookieService.SetTokenCookie(Response, authResponse.AccessToken, authResponse.RefreshToken, authResponse.IsPersistent ?? false);
+            return Ok(new { message = "Токен успішно оновлено" });
         }
-        catch  (Exception ex) 
+        catch (UnauthorizedAccessException ex)
         {
-            return Unauthorized(new {message = ex.Message}); 
+            cookieService.DeleteTokenCookie(Response);
+            return Unauthorized(new { message = ex.Message });
         }
     }
 

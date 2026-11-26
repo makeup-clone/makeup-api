@@ -1,4 +1,5 @@
 ﻿using Application.Interfaces;
+using Domain.Constants;
 using Domain.Entities.Identity;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
@@ -21,9 +22,19 @@ public class JwtTokenService(IConfiguration configuration, UserManager<UserEntit
             new ("lastName", user.LastName ?? string.Empty),
             new ("email", user.Email ?? string.Empty),
             new ("image", user.Image ?? string.Empty),
+            new ("createdAt", user.DateCreated.ToString("O"))
         };
         foreach (var role in await userManager.GetRolesAsync(user))
             claims.Add(new Claim("roles", role));
+
+        var logins = await userManager.GetLoginsAsync(user);
+        var providers = logins
+            .Select(l => l.LoginProvider)
+            .Where(p => !string.IsNullOrWhiteSpace(p))
+            .Distinct()
+            .ToList();
+        foreach (var provider in providers)
+            claims.Add(new Claim("providers", provider));
 
         // 2. Читаємо секретний ключ із appsettings.json
         var jwtKey = configuration["Jwt:Key"] ?? throw new InvalidOperationException("Jwt:Key is not configured");
@@ -35,7 +46,7 @@ public class JwtTokenService(IConfiguration configuration, UserManager<UserEntit
                 issuer: configuration["Jwt:Issuer"],
                 audience: configuration["Jwt:Audience"],
                 claims: claims,
-                expires: DateTime.UtcNow.AddDays(7),
+                expires: DateTime.UtcNow.AddMinutes(CookieConstants.AccessTokenExpirationMinutes),
                 signingCredentials: creds
             );
 

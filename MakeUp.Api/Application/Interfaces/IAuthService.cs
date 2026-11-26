@@ -5,8 +5,8 @@ namespace Application.Interfaces;
 public interface IAuthService
 {
     Task<AuthResponseModel> RegisterAsync(RegisterModel model, CancellationToken cancellationToken = default);
-
-    Task<AuthResponseModel> LoginAsync(LoginModel model);
-
-    Task<AuthResponseModel> GoogleLoginAsync(GoogleLoginModel model);
+    Task<AuthResponseModel> LoginAsync(LoginModel model, CancellationToken cancellationToken = default);
+    Task<AuthResponseModel> GoogleLoginAsync(GoogleLoginModel model, CancellationToken cancellationToken = default);
+    Task<AuthResponseModel> RefreshTokenAsync(string? rawRefreshToken, CancellationToken cancellationToken = default);
+    Task LogoutAsync(string? rawRefreshToken, CancellationToken cancellationToken = default);
 }

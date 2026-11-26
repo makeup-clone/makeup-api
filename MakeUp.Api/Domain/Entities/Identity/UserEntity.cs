@@ -13,6 +13,7 @@ public class UserEntity : IdentityUser<long>
     [StringLength(100)]
     public string? Image { get; set; } = null;
 
+    public ICollection<RefreshToken> RefreshTokens { get; set; } = new HashSet<RefreshToken>();
     public virtual ICollection<UserRoleEntity>? UserRoles { get; set; }
     public virtual ICollection<UserLoginEntity>? UserLogins { get; set; }
     public virtual ICollection<ReviewEntity>? Reviews { get; set; }

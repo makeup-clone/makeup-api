@@ -25,7 +25,8 @@ builder.Services.AddDbContext<AppDbContext>(opt =>
 builder.Services.AddScoped<IAppDbContext>(provider => provider.GetRequiredService<AppDbContext>());
 
 builder.Services.AddScoped<IAuthService, AuthService>();
-builder.Services.AddScoped<IImageService, ImageService>();
+builder.Services.AddScoped<IImageService, ImageService>(); 
+builder.Services.AddScoped<ICookieService, CookieService>();
 builder.Services.AddScoped<IJwtTokenService, JwtTokenService>();
 builder.Services.AddScoped<ICategoryService, CategoryService>();
 
@@ -108,16 +109,11 @@ builder.Services.AddAuthentication(options =>
             var userId = context.Principal?.FindFirstValue("id")
                          ?? context.Principal?.FindFirstValue(ClaimTypes.NameIdentifier);
 
-            var cookieOptions = new CookieOptions
-            {
-                HttpOnly = true,
-                Secure = false, 
-                SameSite = SameSiteMode.Strict,
-            };
+            var cookieService = context.HttpContext.RequestServices.GetRequiredService<ICookieService>();
 
             if (string.IsNullOrWhiteSpace(userId))
             {
-                context.Response.Cookies.Delete(CookieConstants.AccessTokenCookieName, cookieOptions);
+                cookieService.DeleteTokenCookie(context.Response);
                 context.Fail("Invalid token claims.");
                 return;
             }
@@ -126,9 +122,9 @@ builder.Services.AddAuthentication(options =>
                 .GetRequiredService<UserManager<UserEntity>>();
 
             var user = await userManager.FindByIdAsync(userId);
-            if (user is null)
+            if (user is null || user.IsDeleted)
             {
-                context.Response.Cookies.Delete(CookieConstants.AccessTokenCookieName, cookieOptions);
+                cookieService.DeleteTokenCookie(context.Response);
                 context.Fail("User no longer exists.");
             }
         }
