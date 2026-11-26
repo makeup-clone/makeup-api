@@ -28,11 +28,11 @@ public class AuthController(IAuthService authService, ICookieService cookieServi
     }
 
     [HttpPost]
-    public async Task<IActionResult> Login([FromBody] LoginModel model)
+    public async Task<IActionResult> Login([FromBody] LoginModel model, CancellationToken cancellationToken)
     {
         try
         {
-            var authResponse = await authService.LoginAsync(model);
+            var authResponse = await authService.LoginAsync(model, cancellationToken);
             cookieService.SetTokenCookie(Response, authResponse.AccessToken, authResponse.RefreshToken);
             return Ok(new { message = "Успішний вхід" });
         }
@@ -79,11 +79,11 @@ public class AuthController(IAuthService authService, ICookieService cookieServi
     }
 
     [HttpPost]
-    public async Task<IActionResult> GoogleLogin([FromBody] GoogleLoginModel model)
+    public async Task<IActionResult> GoogleLogin([FromBody] GoogleLoginModel model, CancellationToken cancellationToken)
     {
         try
         {
-            var authResponse = await authService.GoogleLoginAsync(model);
+            var authResponse = await authService.GoogleLoginAsync(model, cancellationToken);
             cookieService.SetTokenCookie(Response, authResponse.AccessToken, authResponse.RefreshToken);
             return Ok(new { message = "Успішний вхід через Google" });
         }

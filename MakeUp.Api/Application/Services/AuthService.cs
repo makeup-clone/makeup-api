@@ -2,15 +2,44 @@
 using Application.Mappers;
 using Application.Models;
 using Domain.Constants;
+using Domain.Entities;
 using Domain.Entities.Identity;
 using Google.Apis.Auth;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
+using System.Security.Cryptography;
+using System.Text;
 
 namespace Application.Services;
 
-public class AuthService(UserManager<UserEntity> userManager, IImageService imageService, UserMapper userMapper, IJwtTokenService jwtTokenService, IConfiguration configuration) : IAuthService
+public class AuthService(UserManager<UserEntity> userManager, IImageService imageService, UserMapper userMapper, IJwtTokenService jwtTokenService, IConfiguration configuration, IAppDbContext context) : IAuthService
 {
+    private async Task<string> CreateRefreshTokenAsync(long userId, CancellationToken cancellationToken = default)
+    {
+        var tokenBytes = RandomNumberGenerator.GetBytes(64);
+        var rawToken = Convert.ToBase64String(tokenBytes);
+        var tokenHash = ComputeSha256Hash(rawToken);
+
+        var refreshToken = new RefreshToken
+        {
+            UserId = userId,
+            Token = tokenHash,
+            ExpirationDate = DateTime.UtcNow.AddDays(CookieConstants.RefreshTokenExpirationDays),
+            DateCreated = DateTime.UtcNow,
+        };
+
+        context.RefreshTokens.Add(refreshToken);
+        await context.SaveChangesAsync(cancellationToken);
+
+        return rawToken;
+    }
+
+    private static string ComputeSha256Hash(string rawToken)
+    {
+        var hashBytes = SHA256.HashData(Encoding.UTF8.GetBytes(rawToken));
+        return Convert.ToHexString(hashBytes);
+    }
+
     public async Task<AuthResponseModel> RegisterAsync(RegisterModel model, CancellationToken cancellationToken)
     {
         var existUser = await userManager.FindByEmailAsync(model.Email);
@@ -40,12 +69,16 @@ public class AuthService(UserManager<UserEntity> userManager, IImageService imag
             throw new Exception($"Сталася помилка при додаванні ролі: {errors}");
         }
         
-        var token = await jwtTokenService.CreateTokenAsync(user);
-        return new AuthResponseModel { AccessToken = token };
+        var accessToken = await jwtTokenService.CreateTokenAsync(user);
+        var refreshToken = await CreateRefreshTokenAsync(user.Id, cancellationToken);
+        return new AuthResponseModel {
+            AccessToken = accessToken,
+            RefreshToken = refreshToken
+        };
     }
 
 
-    public async Task<AuthResponseModel> LoginAsync(LoginModel model)
+    public async Task<AuthResponseModel> LoginAsync(LoginModel model, CancellationToken cancellationToken)
     {
         var user = await userManager.FindByEmailAsync(model.Email);
         if (user == null)
@@ -55,12 +88,17 @@ public class AuthService(UserManager<UserEntity> userManager, IImageService imag
         if (!isPassValid)
             throw new Exception("Невірний email або пароль.");
 
-        var token = await jwtTokenService.CreateTokenAsync(user);
-        return new AuthResponseModel { AccessToken = token };
+        var accessToken = await jwtTokenService.CreateTokenAsync(user);
+        var refreshToken = await CreateRefreshTokenAsync(user.Id, cancellationToken);
+        return new AuthResponseModel
+        {
+            AccessToken = accessToken,
+            RefreshToken = refreshToken
+        };
     }
 
 
-    public async Task<AuthResponseModel> GoogleLoginAsync(GoogleLoginModel model)
+    public async Task<AuthResponseModel> GoogleLoginAsync(GoogleLoginModel model, CancellationToken cancellationToken)
     {
         var payload = await GoogleJsonWebSignature.ValidateAsync(
             model.GoogleIdToken,
@@ -110,7 +148,12 @@ public class AuthService(UserManager<UserEntity> userManager, IImageService imag
             }
         }
 
-        var token = await jwtTokenService.CreateTokenAsync(user);
-        return new AuthResponseModel { AccessToken = token };
+        var accessToken = await jwtTokenService.CreateTokenAsync(user);
+        var refreshToken = await CreateRefreshTokenAsync(user.Id, cancellationToken);
+        return new AuthResponseModel    
+        {
+            AccessToken = accessToken,
+            RefreshToken = refreshToken
+        };
     }
 }
