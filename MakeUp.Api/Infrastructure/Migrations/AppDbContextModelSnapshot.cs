@@ -498,6 +498,41 @@ namespace Infrastructure.Migrations
                     b.ToTable("tblProductVariants");
                 });
 
+            modelBuilder.Entity("Domain.Entities.RefreshToken", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<DateTime>("DateCreated")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("ExpirationDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Token")
+                        .IsRequired()
+                        .IsUnicode(false)
+                        .HasColumnType("text");
+
+                    b.Property<long>("UserId")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Token")
+                        .IsUnique();
+
+                    b.HasIndex("UserId", "ExpirationDate");
+
+                    b.ToTable("tbl_RefreshToken");
+                });
+
             modelBuilder.Entity("Domain.Entities.ReviewEntity", b =>
                 {
                     b.Property<long>("Id")
@@ -765,6 +800,17 @@ namespace Infrastructure.Migrations
                     b.Navigation("Product");
                 });
 
+            modelBuilder.Entity("Domain.Entities.RefreshToken", b =>
+                {
+                    b.HasOne("Domain.Entities.Identity.UserEntity", "User")
+                        .WithMany("RefreshTokens")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("Domain.Entities.ReviewEntity", b =>
                 {
                     b.HasOne("Domain.Entities.ReviewEntity", "Parent")
@@ -837,6 +883,8 @@ namespace Infrastructure.Migrations
                     b.Navigation("Carts");
 
                     b.Navigation("Favorites");
+
+                    b.Navigation("RefreshTokens");
 
                     b.Navigation("Reviews");
 

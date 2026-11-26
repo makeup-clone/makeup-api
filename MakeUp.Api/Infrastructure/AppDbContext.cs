@@ -33,6 +33,7 @@ public class AppDbContext : IdentityDbContext<
     public DbSet<ReviewEntity> Reviews { get; set; }
     public DbSet<CartEntity> Carts { get; set; }
     public DbSet<FavoriteEntity> Favorites { get; set; }
+    public DbSet<RefreshToken> RefreshTokens { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -156,6 +157,19 @@ public class AppDbContext : IdentityDbContext<
             p.HasOne(p => p.Category)
                 .WithMany(c => c.Products)
                 .HasForeignKey(p => p.CategoryId);
+        });
+
+        modelBuilder.Entity<RefreshToken>(e =>
+        {
+            e.HasIndex(rt => rt.Token)
+                .IsUnique();
+
+            e.HasIndex(rt => new { rt.UserId, rt.ExpirationDate });
+
+            e.HasOne(rt => rt.User)
+                .WithMany(u => u.RefreshTokens)
+                .HasForeignKey(rt => rt.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
         });
     }
 }
