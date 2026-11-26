@@ -6,6 +6,7 @@ using Domain.Entities;
 using Domain.Entities.Identity;
 using Google.Apis.Auth;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using System.Security.Cryptography;
 using System.Text;
@@ -155,5 +156,61 @@ public class AuthService(UserManager<UserEntity> userManager, IImageService imag
             AccessToken = accessToken,
             RefreshToken = refreshToken
         };
+    }
+
+    public async Task<AuthResponseModel> RefreshTokenAsync(string? rawRefreshToken, CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(rawRefreshToken))
+            throw new UnauthorizedAccessException("Refresh-токен відсутній.");
+
+        var tokenHash = ComputeSha256Hash(rawRefreshToken);
+
+        var storedToken = await context.RefreshTokens
+            .Include(rt => rt.User)
+            .FirstOrDefaultAsync(rt => rt.Token == tokenHash, cancellationToken);
+
+        if (storedToken is null || storedToken.IsDeleted)
+            throw new UnauthorizedAccessException("Невалідний refresh-токен.");
+
+        if (storedToken.ExpirationDate <= DateTime.UtcNow)
+        {
+            storedToken.IsDeleted = true;
+            await context.SaveChangesAsync(cancellationToken);
+            throw new UnauthorizedAccessException("Термін дії refresh-токена вичерпано.");
+        }
+
+        if (storedToken.User is null || storedToken.User.IsDeleted)
+            throw new UnauthorizedAccessException("Користувача не знайдено або акаунт неактивний.");
+
+        // Позначаємо поточний refresh-токен як використаний (ротація)
+        storedToken.IsDeleted = true;
+
+        var newAccessToken = await jwtTokenService.CreateTokenAsync(storedToken.User);
+        var newRefreshToken = await CreateRefreshTokenAsync(storedToken.UserId, cancellationToken);
+
+        await context.SaveChangesAsync(cancellationToken);
+
+        return new AuthResponseModel
+        {
+            AccessToken = newAccessToken,
+            RefreshToken = newRefreshToken
+        };
+    }
+
+    public async Task LogoutAsync(string? rawRefreshToken, CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(rawRefreshToken))
+            return;
+
+        var tokenHash = ComputeSha256Hash(rawRefreshToken);
+
+        var storedToken = await context.RefreshTokens
+            .FirstOrDefaultAsync(rt => rt.Token == tokenHash && !rt.IsDeleted, cancellationToken);
+
+        if (storedToken is null)
+            return;
+
+        storedToken.IsDeleted = true;
+        await context.SaveChangesAsync(cancellationToken);
     }
 }
