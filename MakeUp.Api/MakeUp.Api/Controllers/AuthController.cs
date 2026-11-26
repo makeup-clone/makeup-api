@@ -1,5 +1,6 @@
 ﻿using Application.Interfaces;
 using Application.Models;
+using Domain.Constants;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
@@ -43,11 +44,13 @@ public class AuthController(IAuthService authService, ICookieService cookieServi
     }
 
     [HttpPost]
-    [Authorize]
-    public async Task<IActionResult> Logout()
+    public async Task<IActionResult> Logout(CancellationToken cancellationToken)
     {
+        var refreshToken = Request.Cookies[CookieConstants.RefreshTokenCookieName];
+        await authService.LogoutAsync(refreshToken, cancellationToken);
+
         cookieService.DeleteTokenCookie(Response);
-        return Ok(new { message = "Успішний вихід з системи" });
+        return Ok(new { message = "Успішний вихід із системи" });
     }
 
     [HttpGet]
@@ -60,11 +63,6 @@ public class AuthController(IAuthService authService, ICookieService cookieServi
             .Distinct()
             .ToArray();
 
-        var roles = User.FindAll("roles")
-            .Select(c => c.Value)
-            .Distinct()
-            .ToArray();
-
         return Ok(new
         {
             id = User.FindFirstValue("id"),
@@ -73,9 +71,27 @@ public class AuthController(IAuthService authService, ICookieService cookieServi
             lastName = User.FindFirstValue("lastName"),
             image = User.FindFirstValue("image"),
             createdAt = User.FindFirstValue("createdAt"),
+            roles = User.FindAll(ClaimTypes.Role).Select(r => r.Value),
             providers,
-            roles
         });
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> Refresh(CancellationToken cancellationToken)
+    {
+        var refreshToken = Request.Cookies[CookieConstants.RefreshTokenCookieName];
+
+        try
+        {
+            var authResponse = await authService.RefreshTokenAsync(refreshToken, cancellationToken);
+            cookieService.SetTokenCookie(Response, authResponse.AccessToken, authResponse.RefreshToken);
+            return Ok(new { message = "Токен успішно оновлено" });
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            cookieService.DeleteTokenCookie(Response);
+            return Unauthorized(new { message = ex.Message });
+        }
     }
 
     [HttpPost]

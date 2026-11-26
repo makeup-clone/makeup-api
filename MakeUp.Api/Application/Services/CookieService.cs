@@ -21,7 +21,7 @@ public class CookieService : ICookieService
             HttpOnly = true,
             Secure = false,
             SameSite = SameSiteMode.Strict,
-            Path = "/api/auth",
+            Path = "/api/Auth",
             Expires = DateTimeOffset.UtcNow.AddDays(CookieConstants.RefreshTokenExpirationDays)
         };
 
@@ -44,7 +44,7 @@ public class CookieService : ICookieService
             HttpOnly = true,
             Secure = false,
             SameSite = SameSiteMode.Strict,
-            Path = "/api/auth" // має збігатися з Path при створенні!
+            Path = "/api/Auth" // має збігатися з Path при створенні!
         };
 
         response.Cookies.Delete(CookieConstants.AccessTokenCookieName, accessOptions);
