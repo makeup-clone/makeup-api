@@ -13,4 +13,10 @@ public class LoginModel
     /// </summary>
     /// <example>User123</example>
     public string Password { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Запам'ятати мене (false - коротка сесія)
+    /// </summary>
+    /// <example>false</example>
+    public bool RememberMe { get; set; } = false;
 }

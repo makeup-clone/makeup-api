@@ -15,7 +15,7 @@ namespace Application.Services;
 
 public class AuthService(UserManager<UserEntity> userManager, IImageService imageService, UserMapper userMapper, IJwtTokenService jwtTokenService, IConfiguration configuration, IAppDbContext context) : IAuthService
 {
-    private async Task<string> CreateRefreshTokenAsync(long userId, CancellationToken cancellationToken = default)
+    private async Task<string> CreateRefreshTokenAsync(long userId, CancellationToken cancellationToken = default, bool rememberMe = false)
     {
         var tokenBytes = RandomNumberGenerator.GetBytes(64);
         var rawToken = Convert.ToBase64String(tokenBytes);
@@ -25,8 +25,9 @@ public class AuthService(UserManager<UserEntity> userManager, IImageService imag
         {
             UserId = userId,
             Token = tokenHash,
-            ExpirationDate = DateTime.UtcNow.AddDays(CookieConstants.RefreshTokenExpirationDays),
+            ExpirationDate = DateTime.UtcNow.AddDays(rememberMe ? CookieConstants.RefreshTokenExpirationDays : 1),
             DateCreated = DateTime.UtcNow,
+            IsPersistent = rememberMe
         };
 
         context.RefreshTokens.Add(refreshToken);
@@ -71,7 +72,7 @@ public class AuthService(UserManager<UserEntity> userManager, IImageService imag
         }
         
         var accessToken = await jwtTokenService.CreateTokenAsync(user);
-        var refreshToken = await CreateRefreshTokenAsync(user.Id, cancellationToken);
+        var refreshToken = await CreateRefreshTokenAsync(user.Id, cancellationToken, model.RememberMe);
         return new AuthResponseModel {
             AccessToken = accessToken,
             RefreshToken = refreshToken
@@ -90,7 +91,7 @@ public class AuthService(UserManager<UserEntity> userManager, IImageService imag
             throw new Exception("Невірний email або пароль.");
 
         var accessToken = await jwtTokenService.CreateTokenAsync(user);
-        var refreshToken = await CreateRefreshTokenAsync(user.Id, cancellationToken);
+        var refreshToken = await CreateRefreshTokenAsync(user.Id, cancellationToken, model.RememberMe);
         return new AuthResponseModel
         {
             AccessToken = accessToken,
@@ -150,7 +151,7 @@ public class AuthService(UserManager<UserEntity> userManager, IImageService imag
         }
 
         var accessToken = await jwtTokenService.CreateTokenAsync(user);
-        var refreshToken = await CreateRefreshTokenAsync(user.Id, cancellationToken);
+        var refreshToken = await CreateRefreshTokenAsync(user.Id, cancellationToken, model.RememberMe);
         return new AuthResponseModel    
         {
             AccessToken = accessToken,
@@ -186,14 +187,13 @@ public class AuthService(UserManager<UserEntity> userManager, IImageService imag
         storedToken.IsDeleted = true;
 
         var newAccessToken = await jwtTokenService.CreateTokenAsync(storedToken.User);
-        var newRefreshToken = await CreateRefreshTokenAsync(storedToken.UserId, cancellationToken);
-
-        await context.SaveChangesAsync(cancellationToken);
+        var newRefreshToken = await CreateRefreshTokenAsync(storedToken.UserId, cancellationToken, storedToken.IsPersistent);
 
         return new AuthResponseModel
         {
             AccessToken = newAccessToken,
-            RefreshToken = newRefreshToken
+            RefreshToken = newRefreshToken,
+            IsPersistent = storedToken.IsPersistent
         };
     }
 

@@ -6,7 +6,7 @@ namespace Application.Services;
 
 public class CookieService : ICookieService
 {
-    public void SetTokenCookie(HttpResponse response, string accesstoken, string refreshToken)
+    public void SetTokenCookie(HttpResponse response, string accesstoken, string refreshToken, bool rememberMe)
     {
         var accessOptions = new CookieOptions
         {
@@ -22,7 +22,7 @@ public class CookieService : ICookieService
             Secure = false,
             SameSite = SameSiteMode.Strict,
             Path = "/api/Auth",
-            Expires = DateTimeOffset.UtcNow.AddDays(CookieConstants.RefreshTokenExpirationDays)
+            Expires = rememberMe ? DateTimeOffset.UtcNow.AddDays(CookieConstants.RefreshTokenExpirationDays) : null
         };
 
         response.Cookies.Append(CookieConstants.AccessTokenCookieName, accesstoken, accessOptions);

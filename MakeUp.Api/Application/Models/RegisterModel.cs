@@ -47,4 +47,10 @@ public class RegisterModel
     /// Зображення профілю
     /// </summary>
     public IFormFile? Image { get; set; }
+
+    /// <summary>
+    /// Запам'ятати мене (false - коротка сесія)
+    /// </summary>
+    /// <example>false</example>
+    public bool RememberMe { get; set; } = false;
 }

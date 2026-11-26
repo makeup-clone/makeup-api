@@ -18,7 +18,7 @@ public class AuthController(IAuthService authService, ICookieService cookieServi
         try
         {
             var authResponse = await authService.RegisterAsync(model, cancellationToken);
-            cookieService.SetTokenCookie(Response, authResponse.AccessToken, authResponse.RefreshToken);
+            cookieService.SetTokenCookie(Response, authResponse.AccessToken, authResponse.RefreshToken, model.RememberMe);
             return Ok(new { message = "Реєстрація успішна" });
         }
         catch (Exception ex)
@@ -34,7 +34,7 @@ public class AuthController(IAuthService authService, ICookieService cookieServi
         try
         {
             var authResponse = await authService.LoginAsync(model, cancellationToken);
-            cookieService.SetTokenCookie(Response, authResponse.AccessToken, authResponse.RefreshToken);
+            cookieService.SetTokenCookie(Response, authResponse.AccessToken, authResponse.RefreshToken, model.RememberMe);
             return Ok(new { message = "Успішний вхід" });
         }
         catch (Exception ex)
@@ -51,6 +51,21 @@ public class AuthController(IAuthService authService, ICookieService cookieServi
 
         cookieService.DeleteTokenCookie(Response);
         return Ok(new { message = "Успішний вихід із системи" });
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> GoogleLogin([FromBody] GoogleLoginModel model, CancellationToken cancellationToken)
+    {
+        try
+        {
+            var authResponse = await authService.GoogleLoginAsync(model, cancellationToken);
+            cookieService.SetTokenCookie(Response, authResponse.AccessToken, authResponse.RefreshToken, model.RememberMe);
+            return Ok(new { message = "Успішний вхід через Google" });
+        }
+        catch (Exception ex)
+        {
+            return Unauthorized(new { message = ex.Message });
+        }
     }
 
     [HttpGet]
@@ -84,28 +99,13 @@ public class AuthController(IAuthService authService, ICookieService cookieServi
         try
         {
             var authResponse = await authService.RefreshTokenAsync(refreshToken, cancellationToken);
-            cookieService.SetTokenCookie(Response, authResponse.AccessToken, authResponse.RefreshToken);
+            cookieService.SetTokenCookie(Response, authResponse.AccessToken, authResponse.RefreshToken, authResponse.IsPersistent ?? false);
             return Ok(new { message = "Токен успішно оновлено" });
         }
         catch (UnauthorizedAccessException ex)
         {
             cookieService.DeleteTokenCookie(Response);
             return Unauthorized(new { message = ex.Message });
-        }
-    }
-
-    [HttpPost]
-    public async Task<IActionResult> GoogleLogin([FromBody] GoogleLoginModel model, CancellationToken cancellationToken)
-    {
-        try
-        {
-            var authResponse = await authService.GoogleLoginAsync(model, cancellationToken);
-            cookieService.SetTokenCookie(Response, authResponse.AccessToken, authResponse.RefreshToken);
-            return Ok(new { message = "Успішний вхід через Google" });
-        }
-        catch  (Exception ex) 
-        {
-            return Unauthorized(new {message = ex.Message}); 
         }
     }
 

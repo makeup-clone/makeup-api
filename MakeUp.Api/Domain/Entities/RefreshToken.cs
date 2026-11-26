@@ -13,4 +13,5 @@ public class RefreshToken : BaseEntity<long>
     [Unicode(false)]
     public string Token { get; set; } = string.Empty;
     public DateTime ExpirationDate { get; set; }
+    public bool IsPersistent { get; set; }
 }
