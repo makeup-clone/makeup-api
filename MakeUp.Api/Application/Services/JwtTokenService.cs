@@ -22,7 +22,8 @@ public class JwtTokenService(IConfiguration configuration, UserManager<UserEntit
             new ("lastName", user.LastName ?? string.Empty),
             new ("email", user.Email ?? string.Empty),
             new ("image", user.Image ?? string.Empty),
-            new ("createdAt", user.DateCreated.ToString("O"))
+            new ("createdAt", user.DateCreated.ToString("O")),
+            new ("isEmailConfirmed", user.EmailConfirmed.ToString())
         };
         foreach (var role in await userManager.GetRolesAsync(user))
             claims.Add(new Claim("roles", role));

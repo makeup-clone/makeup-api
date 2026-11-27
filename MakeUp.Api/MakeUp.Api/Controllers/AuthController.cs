@@ -7,7 +7,7 @@ using System.Security.Claims;
 
 namespace MakeUp.Api.Controllers;
 
-[Route("api/[controller]/[action]")]
+[Route("api/auth/[action]")]
 [ApiController]
 public class AuthController(IAuthService authService, ICookieService cookieService) : ControllerBase
 {
@@ -81,11 +81,12 @@ public class AuthController(IAuthService authService, ICookieService cookieServi
         return Ok(new
         {
             id = User.FindFirstValue("id"),
-            email = User.FindFirstValue("email"),
-            firstName = User.FindFirstValue("firstName"),
+            email = User.FindFirstValue("email") ?? User.FindFirstValue(ClaimTypes.Email),
+        firstName = User.FindFirstValue("firstName"),
             lastName = User.FindFirstValue("lastName"),
             image = User.FindFirstValue("image"),
             createdAt = User.FindFirstValue("createdAt"),
+            isEmailConfirmed = User.FindFirstValue("isEmailConfirmed"),
             roles = User.FindAll(ClaimTypes.Role).Select(r => r.Value),
             providers,
         });
